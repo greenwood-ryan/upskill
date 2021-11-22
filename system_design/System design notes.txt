@@ -1,0 +1,545 @@
+System design notes
+Step 1: Requirements clarifications
+Step 2: Back-of-the-envelope estimation
+Step 3: System interface definition
+Step 4: Defining data model
+Step 5: High-level design
+Step 6: Detailed design
+			Data partitioning and replication
+			Cache
+			Load balancing
+			Database cleanup
+			Telemetry
+			Security and permissions
+Step 7: Identifying and resolving bottlenecks
+
+OOD Principles
+	S	ingle responsibility principle.  Each class only does one thing and every class or module only has 
+		responsibility for one part of the software’s functionality
+	O	pen closed principle.  Classes are open for extension and closed for modification
+	L	iskovs substitution principle.  If an instance of S can be swapped with an instance of T without a 
+		behaviour change in any program using T then S is a subtype of T.
+	I	nterface segregation principle. Use many small interfaces that are client specific rather than one big one.
+	D	ependency inversion principle.  Use abstractions (interfaces, abstract classes) that details depend on.
+
+Useful numbers for design:
+	Time: 
+		60sec x 60min = 3600 sec/hr
+		3600 x 24 hours = 86,400 sec / day
+		86,400 x 30 days = 2,500,000 sec / mnth
+		2,500,000 * 12 months = 30,000,000 sec / year
+		
+
+		
+	Size estimates:
+		KB					10^3
+		MB					10^6
+		GB					10^9
+		TB					10^12
+		PB					10^15
+		#bits for decimal	ceil(log(decimal number) / log(2))
+		UserID 				4-8 bytes
+		Name				20 bytes
+		File path			256 bytes
+		Email 				32 bytes
+		Latitude/Longitude	4 bytes
+		Epoch time			4 bytes
+		Hashtable overhead	20 bytes
+		SortedSet overhead	20 bytes
+		Pointers 			8 bytes each (e.g. in doubly linked list previous and next 8 + 8 = 16 bytes)
+		Server max cnxns	50K
+		MD5 hash			128 bits
+		Unicode char		16 bit => 2 bytes
+		Unicode int			32 bit => 4 bytes
+		Unicode long		64 bit => 8 bytes
+		Base64 ^ #chars		e.g. 6 chars => 64^6 = 68.7B strings
+
+		e.g. Calculate tweetid size (bit count) for 50 years storage for a tweetid that consists of epoch time and an incrementing number that is reset to zero every second
+			how many bits required to store 50 years worth of seconds 
+				=> 30 * 10^6 secs/year * 50 years
+				=> 1.5 * 10^9 secs
+				=> ceil(log(1.5 * 10^9) / log(2)) 
+				=> ceil(30.48)
+				=> 31 bits.
+			how many bits required to store unique incrementing numbers / sec given throughput of 400 x 10^6 new tweets per day or n number of unique incrementing numbers per second.
+				=> 400 x 10^6 tweets / 86,400 secs per day
+				=> 4629 tweetids per sec
+				=> ceil(log(4630) / log(2))
+				=> 13 bits.
+
+	HTTP Status Codes:
+		1xx informational response – the request was received, continuing process
+		2xx successful – the request was successfully received, understood, and accepted
+		3xx redirection – further action needs to be taken in order to complete the request
+		4xx client error – the request contains bad syntax or cannot be fulfilled
+		5xx server error – the server failed to fulfil an apparently valid request
+
+
+
+
+Distributed systems
+	Potential problems
+		client cant find server
+		server crash mid request
+		server response lost after being sent
+		client crashes
+	
+	Benefits
+		More reliable and fault tolerant
+		Scalable
+		Lower latency and increased performance
+		Cost effective
+	
+	System design performance metrics
+		Scalability
+			ability to grow and manage increased trafficd
+			increased volume of requests and/or data
+		Reliability
+			Probability of failure during a time period
+			harder to define for software than for hardware.  (Soak test)
+			Need good functional testing along with performance testing
+			Need pre-emptive analysis tools 
+			Common measurement of reliability is:
+				Mean time between failure MTBF
+				Important because:  it will provide an indicator of when the next failure will happen
+				Calculated:
+				MTBF = (Total elapsed time - total downtime)/number of failures
+				e.g. (24 hours - 4 hours downtime)/4 failures = 5 hour MTBF
+		Availability
+			Most important for customers
+			Amount of time system is operational during a time period
+			Poorly designed software requiring downtime for updates is a contributor
+			Calculating availability:
+				Availability% = (available time/total time)x100
+				e.g. (23hours/24hours)x100 = 95.83%
+			Five 9's metric for availability is: 99.999% available or 5.26 minutes down in the year.
+			Replicas used for performance scaling.  
+			Redundancy used with failure detecting load balancer as a continuity failover.
+		Reliability vs Availability (The trade off)
+			Reliable system is always an available system
+			Availability can be maintained by redundancy but system is not necessarily reliable
+			Reliable software will be more profitable as requires less backup resources
+			SLAs will determine software function.  Risk will determine the degrees.
+		Efficiency
+			How well system performs
+			Common metrics are latency and throughput
+			Correct function under load
+		Manageability
+			Time and difficulty to maintain a system including:
+				Obervability - how difficult to track bugs/issues
+				Difficulty of deployment of updates
+			Goal is to abstract away infrastructure so product engineers don't have to worry about it
+	
+	Numbers programmers should know
+		Latency numbers
+			The latency cost implications of program calls to storage increases dramatically the further away to which you call. So...
+			CPU L1 Cache all the way to remote data centre calls: time increases from 1ns to 183ms
+			Key takeaways:
+				Use caching if possible
+				Avoid network calls if possible
+				replicate data across data centres for failover and performance
+				Use content distribution networks to reduce latency
+			MapReduce:  Used to move processing to large data repositories to reduce the need to move large volumes of data around.  Processing can happen at multiple nodes and results sent to, and consolidated at, a central node.
+				Hadoop is based on MapReduce.
+	Math for capacity estimates
+		Useful for making estimates
+			Common data types:  char 1 byte, Integer 4bytes (32 bits), Unix timestamp 4 bytes;
+			Time: 
+				60sec x 60min = 3600 sec/hr
+				3600 x 24 hours = 86,400 sec / day
+				86,400 x 30 days = 2,500,000 sec / mnth
+		Traffic estimates	
+			Estimate total number of requests app receives
+			Average daily active users(DAU) x average reads/writes per user.
+				10M DAU x 30 photos viewed = 300M photo requests/reads
+				10M DAU x 1 photo upload = 10M photo writes
+				300M requests per day (86,400 sec) = 3472 requests/reads per sec
+				10M writes per day (86,400 sec) = 115 writes per sec
+			NOTE:  1 request to a public microservice may result in requests to multiple internal microservices
+		Memory requirement estimates
+			Read requests per day x average request size x 0.2 (why 0.2? 80/20 rule 20% of data will be 80% of overall traffic).  Cache most popular stuff.
+			Example:
+				300M requests x 500 Bytes (estimate size) = 150GB
+				150GB x 0.2 = 30GB
+				30GB x 3? (number of replicated instances) = 90GB
+		Bandwidth requirement estimates
+			Requests per day x request size
+				Example:
+					300M requests x 1.5MB (avg msg size) = 450,000 GB
+					450,000GB per day (86,400 sec) = 5.2GB/sec
+					NOTE: consider peaks which will go way beyond averages.
+		Storage requirement estimates
+			Writes per day x size of write x time to store data
+				Example:
+					10M writes x 1.5MB = 15TB per day
+					15TB x 365 days x 10 years = 55 PB
+
+Horizontal and vertical scaling of web applications
+	Vertical scaling (more cost effective for smaller and short term apps)
+		Pros:
+			Easiest way to scale (i.e. bigger server or throw tin at the problem)
+		Cons:
+			Diminishing returns with limits to scalability
+				Limit to ability to add
+				Benefits for cost reduce 
+					e.g. 4 to 8 core server produces almost no benefit for 2xprice
+			Remains a single point of failure
+	Horizontal scaling  (more cost effective in the long term and with larger size apps)
+		Pros:
+			Redundancy built in
+			Cloud providers makes this easy
+			Latency benefits of moving processing closer to users.
+		Cons:
+			More complexity up front
+			Will require load balancing for traffic distribution.
+				
+System design components
+	Load balancers
+		Balance incoming traffic between multiple recipient servers
+		Can be software or hardware based
+			Software examples:
+				Nginx, HAProxy
+					Pros:  Run on any server
+					Cons:  Handle less traffic than hardware LBs
+			Hardware examples:
+				F5, Citrix 
+					Pros:  Handle high volumes
+					Cons:  Expensive and vendor lockin.
+		Used to improve reliability and scalability of app
+			Can ramp up the back end processing capacity in demand peaks and LB easily distributes.
+			Back end host failure will result in LB simply rerouting traffic to available host service
+		Amazon offers 4 types:
+			Application:  Layer 7 type
+				http/s traffic with advanced routing for distributed modern apps
+			Network: Layer4 type
+				TCP, UDP and TLS(transport layer security) for extreme performance millions req/sec with low latency.  Used at the edge of the virtual network to exclude DoS attacks that consume processing power inside the network.
+			Gateway: 
+				deploy, scale and run 3rd party virtual networking appliances (web application firewalls (WAF), firewalls, gateways/routers, application delivery controllers (ADC), and WAN optimizers)
+			Classic: Layer 7 type
+				Basic load balancing across multiple EC2 instances at request and connection levels.  Intended for apps that were built in EC2-Classic network
+		Application LB routing methods:
+			Round Robin
+				Simplest type of routing
+				Can result in uneven traffic.  Requests are different. perchance heavy requests go to same server.
+			Least connections
+				Routes based on number of client connections to server
+				Useful for chat or streaming applications
+			Least response time
+				Routes based on how quickly servers respond
+			IP Hash
+				routes client to server based on hashed client IP
+				useful for helping maintain stateful sessions e.g. shopping cart.
+		Two main types of LB
+			Layer 4 Amazon Network LB
+				Only has access to TCP and UDP data.
+				Faster
+				Lack of information can lead to uneven traffic.
+			Layer 7 Amazon Application LB and Classic LB
+				Full access to HTTP protocol and data.
+				SSL termination with traffic decryption
+				Check for authentication
+				Smarter routing options
+	Caching
+		Why use:
+			Improve app performance
+			Save money long term
+		How it works
+			Cache memory is placed between DB and app server (or web server if relevant)
+			Popularly retrieved items are copied to cache to remove the need to call DB.
+		Speed and performance
+			Reading from memory is 50-200 x faster than from disk
+			serve same amount of traffic with fewer resources 
+			pre-calculate and cache data
+			most apps have way more reads than writes
+		Caching layers
+			client ip caching
+			DNS ip caching
+			CDN content data network in front of application layer caching images static pages etc.
+			application
+			database
+		Application design for traditional cache
+			Cache is a large in memory hash table
+			Cache read will put uncached items into cache after db call
+			Cache write update will write update to db and delete "stale data" from cache 
+		Distributed caching
+			Works same as traditional caching
+			Has built in functionality to: 
+				replicate data, 
+				shard (break up tables horizontally sharing rows (performance))data across servers and
+				locate proper server for each key. Reliability is the objective here.
+			Active and passive cache	
+				Red Green cache for redundancy. Why?
+					Cache server goes down then everything goes to DB with performance consequences.
+					Failover will require a warm up period to populate failover cache before going online.
+		Cache eviction
+			Prevent stale data
+			Cache only valuable/popular data to save resources.
+			TTL (time to live depends on kind of data dealt with)
+				set a period before cache entry is deleted
+				prevents stale data
+			LRU/LFU
+				Least recently used:
+					Once cache is full remove last accessed key and add new key
+				Least frequently used:
+					Track number of times key is accessed
+					Drop least used when cache is full
+		Cache leases
+			Used to back up cache for popular requests when an update comes and it is time to remove the "stale" data from cache. This could lead to thousands of read requests to DB in the absence of the original data in cache before it is replenished with the new version from the DB.  The solution is a "back up" cache to temporarily hold this data until original cache is replenished.
+		Caching strategies
+			Cache aside - most common (as described above)
+				The application first checks the cache.
+				If the data is found in cache, we’ve cache hit. The data is read and returned to the client.
+				If the data is not found in cache, we’ve cache miss. The application has to do some extra work. It queries the database to read the data, returns it to the client and stores the data in cache so the subsequent reads for the same data results in a cache hit.
+			Read through
+				Good for read heavy 
+				n cache-aside, the application is responsible for fetching data from the database and populating the cache. In read-through, this logic is usually supported by the library or stand-alone cache provider.
+				Unlike cache-aside, the data model in read-through cache cannot be different than that of the database.
+			Write through
+				Write heavy applications.  
+				Cache updated before DB. 
+				High consistency between cache and DB.
+				On its own, write-through caches don’t seem to do much, in fact, they introduce extra write latency because data is written to the cache first and then to the main database. But when paired with read-through caches, we get all the benefits of read-through and we also get data consistency guarantee, freeing us from using cache invalidation techniques.
+			Write back
+				Writing data directly to cache - very fast. If cache fails - data loss.
+				after some delay, it writes the data back to the database.
+			Write-Around
+				data is written directly to the database and only the data that is read makes it way into the cache
+		Cache consistency
+			Maintaining consistency between cache and DB.
+			Importance depends on use case.
+	Database scaling (relational)
+		Reads by far outweigh writes.  Scaling must take this into consideration.
+		Basic scaling techniques:
+			Indexes
+				Index on search value columns
+					Speeds up reads
+					Writes/updates become slightly slower - must modify index
+					More storage required
+			Denormalization
+				Add redundant data to tables to reduce joins
+					Boosts read performance
+					Slows down writes
+					Risk inconsistent data across tables
+					Code is harder to write
+			Connection pooling
+				Allows multiple application threads to use same DB connection
+				Saves on overhead of independent DB connections
+			Caching
+				Memory in front of DB serving content from memory
+				Con: cant cache everything
+					Examples: redis, memcached
+			Vertical scaling
+				bigger server (more tin) - easiest
+			Horizontal scaling
+				add more smaller servers - consider horizontal data (db and cache) partitioning in this case
+		Replication and partitioning
+			Read replicas
+				create replica servers to handle reads
+				master server dedicated only to writes
+				have to handle making sure new data reaches replicas
+				Con:
+					consistency loss e.g. isolated replica not updated
+					engineering effort to ensure consistency
+				Pro:
+					fault tolerance
+					handle higher traffic volumes
+					
+			Sharding (horizontal partioning)
+				table schema stays the same but rows are split across multiple db instances
+				Why?  handle more writes
+				Con:
+					hot keys e.g. splitting names a-m and n-z may result in fewer writes to xyz unbalanced
+					implementation is difficult
+					no joins across shards
+				Considerations:
+					Carefully thought out primary key can assist in this situation e.g. twitter
+						sharding based on userid might lead to unbalanced distribution if a user is "hot"
+						sharding based on tweetid will lead to more balanced distribution at the cost of latency that is introduced by having to query every server for all tweets.
+						sharding based on tweet creation time will lead to unbalanced load while all traffic goes to one server (the one handling the time frame) the others sit idle
+						sharding based on a tweetid that is a combination of creation time and an incrementing number from zero to n that begins afresh at zero every second. We will still have to query all servers for all tweets however due to the fact that we eliminate the need to filter on time because we have time as part of the tweetid key reads and writes will be quicker.
+					Objective is even distribution of load across participating servers
+					Usually a hash function used on the key points to the server that will hold the keys object
+					
+
+				
+			Vertical partioning
+				divide schema of DB into seperate tables
+				generally divide by functionality
+				best when most data in row isn't needed for most queries
+				Pro:
+					easier than sharding
+				Con:
+					may have to shard anyway
+		When to consider NoSQL
+			You do sacrifice with NoSQL and you know this upfront.  You don't necessarily know this upfront with a relational database.  For data reliability and safe guarantee of performing transactions, SQL databases are the better bet.  Most of the NoSQL solutions sacrifice ACID compliance for performance and scalability.  Choosing the right technology hinges on the use case.
+			What you lose:
+				Normalization (volume issue but not really a problem with large storaage)
+				SQL as a well known and supported language
+				Data consistency (integrity) can be lost so high consistency requires consistency logic in application layer
+				ACID (Atomicity, Consistency, Isolation, Durability) compliance - related to consistency.
+					A	atomicity refers to the integrity of the entire database transaction, not just a component 
+						of it.  All or nothing applies.
+					C	consistency means that only data which follows database rules is permitted to be 
+						written to the database
+					I	isolation refers to the ability to concurrently process multiple transactions in a way that 
+						one does not affect another.  No mid air collisions.
+					D	durability means that data is guaranteed to be saved once a transaction is completed, even 
+						if a power outage or system failure occurs
+						
+			Types
+				Document databases - MongoDB, CouchDB (good for dynamic data stucture requirements)
+				Wide Column databases - Apache Cassandra, HBase (reduces disk I/O good for analytics)
+				Key value stores - Redis, Couchbase Server, Dynamo, Voldemort (good for huge data sets with very simple data, very fast but not intricate or customizable)
+				Cache systems - Redis (also key value store used for caching temp values)
+				Graph databases - Neo4J, InfiniteGraph (persist graph structures, everything is a node with relationships to other nodes via edges.)
+			Reasons to use either:
+			PACELC theorem:
+				If network P partition exists 
+					you have to choose between A availity and C consistency
+				E else
+					you have to choose between L latency and C consistency
+				SQL:
+					need to ensure ACID compliance. For many e-commerce and financial applications, an ACID-compliant database remains the preferred option.
+					Your data is structured and unchanging.
+					RDBMS enforces ACID compliance and chooses data consistency over availability by refusing a response without ensuring its data is the latest without confirmation from its peers
+				NoSQL:
+					prevent data from being the performance bottleneck in a fast and seamless design
+					Storing large volumes of data that often have little to no structure.
+					Easy and cheap horizontal scaling requirement
+					Rapid development requirement
+					AS PER PACELC THEOREM:
+						Dynamo and Cassandra are PA/EL systems: They choose availability over consistency when a partition occurs; otherwise, they choose lower latency.
+						BigTable and HBase are PC/EC systems: They will always choose consistency, giving up availability and lower latency.
+						MongoDB can be considered PA/EC (default configuration): MongoDB works in a primary/secondaries configuration. In the default configuration, all writes and reads are performed on the primary. As all replication is done asynchronously (from primary to secondaries), when there is a network partition in which primary is lost or becomes isolated on the minority side, there is a chance of losing data that is unreplicated to secondaries, hence there is a loss of consistency during partitions. Therefore it can be concluded that in the case of a network partition, MongoDB chooses availability, but otherwise guarantees consistency. Alternately, when MongoDB is configured to write on majority replicas and read from the primary, it could be categorized as PC/EC.
+						
+			
+			NoSQL data partitioning:
+				Range based partitioning:
+					e.g. based on hashkey first letter in one partition.  The main problem with this approach is that it can lead to unbalanced DB servers.
+				Hash-Based Partitioning:
+					 take a hash of the object we are storing. We then calculate which partition to use based upon the hash.  hashing function will randomly distribute URLs into different partitions.  can still lead to overloaded partitions, which can be solved using Consistent Hashing.
+
+								
+Parking garage design example
+
+	Product requirements
+		Need to be able to reserve a parking bay and receive some kind of receipt
+		Need to be able to pay for parking
+		System must have high consistency so no two people reserve the same bay for same time.
+		3 types of parking for vehicles compact, regular and large
+		pricing is flat rate based on time
+		web or mobile
+		NOT ASKED YET
+		How many garages will system expand in future to include multiples of garages?
+			If yes estimate?
+		How big is a garage e.g. 10 floors with 200 bays per floor
+		Is there any kind of venue nearby that could host functions resulting in large demand for parking
+			If yes what will that demand look like
+			
+	API definition
+		public and internal endpoints
+		PUBLIC
+		We'll need to be able to check for available parking bays
+		/find_bay
+		Params: start_time
+				end_time
+				vehicle_type_id
+		Returns: {is_available}	
+		
+		So we'll need to reserve a bay.
+		/reserve
+		Params: garage_id
+				start_time
+				end_time
+				customer_id
+				vehicle_type_id
+		Returns:{bay_id, reservation_id}
+		
+		We'll want to pay to what is probably a 3rd party payment gateway?
+		/pay
+		Params:	reservation_id
+		Note:  likely to be 3rd party
+		
+		Should be able to cancel if necessary
+		/cancel
+		Params:  reservation_id
+		
+		Internal endpoints
+		
+		Need to calculate payments
+		/calculate_payment
+		Params:	reservation_id
+		Returns: value
+		
+		Check what bays are available for reservations
+		/get_available_bays
+		Params: garage_id
+				start_time
+				end_time
+				vehicle_type_id
+		Returns:{bay_id} 
+		NOTES: smaller vehicles can fit in larger bays
+		
+		Allocate parking pay to request
+		/allocate_bay
+		Params: garage_id
+				bay_id
+				start_time
+				end_time
+				vehicle_type_id
+				customer_id
+		Returns:bay_id
+		
+		/create_account
+		Params: email
+				first_name(optional)
+				last_name
+		Note: could implement SSO from third parties Google Facebook etc.
+		
+		/login
+		Params: email
+				password
+		
+		
+		Data schema
+		
+		reservations
+			id			primary key, AUTO_INCREMENT
+			bay_id		foreign key, int
+			garage_id	foreign key, int
+			start_time	timestamp
+			end_time	timestamp
+			is_paid		boolean
+			
+		garage
+			id			primary key, AUTO_INCREMENT
+			location	varchar (google maps link)
+			
+		bay
+			id				primary key, AUTO_INCREMENT
+			garage_id		foreign key, int
+			is_available	boolean
+			bay_type_id		foreign key, int
+			
+		bay_type
+			id					enum
+			description			varchar
+			flat_rate_hourly	decimal(15.2)
+			
+		customer
+			id			foreign key, int
+			email		varchar
+			password	SHA512
+			first_name	varchar (optional)
+			surname		varchar
+			
+		vehicle_type
+			id			AUTO_INCREMENT
+			description	varchar
+		
+			
+
+			
+				
+			
+

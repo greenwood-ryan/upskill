@@ -1,0 +1,2 @@
+-d bin
+-sourcepath \data_structures_algorithms\src

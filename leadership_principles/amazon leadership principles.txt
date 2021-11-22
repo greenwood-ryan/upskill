@@ -1,0 +1,393 @@
+14 key principles are super important
+
+(listen, invent and personalize)
+
+1. Customer obsession
+
+	Pay attention to competitors but obsess over customers.  Start with customer and work backwards.  Work vigorously to earn and keep customer trust.
+	
+	Example1:  How do you go about prioritizing customer needs when you are dealing with a large number of 
+	customers?
+	
+		A customer is the reason for the existence of the company that I serve and the job that I hold. No customer makes a demand from your company if they do not want to deal with your company so they must feel that they are being heard, they must feel that they are understood and that reasonable action is being taken to service them.  For example this year
+		Context:
+			A new partnership between Expleo, SAP and Tricentis resulted in a number of existing SAP customers wishing to embrace Tricentis solutions combined with Expleo services.  This lead to multiple concurrent demands for similar service.
+		Action:
+			I led the team that was to deliver these services and I didn't want to drop the ball.  We established a concrete set of steps with timelines for each pre-requisite dependency leading up to service delivery.  This approach was immediately socialized with each customer.  Customer expectations were negotiated and set in wuch a way that allowed us to service them all to the relative satisfaction of each.  
+		Result:
+			We had successful service rollout across all customers with the exception of one who delayed due to internal restructuring pressures.
+		Retrospective:
+			The upfront negotiations and setting of expectations with the customers worked well.  
+			We did not forsee the instance in which one customer's internal pressures delayed the delivery and messed with our delivery schedule.  We did manage to adapt well enough though.
+			
+	Example2:  Tell me about a time when you didn't meet customer expectations. What happened, and how did you deal with the situation?
+	
+		Context:
+			A large and very important British energy utilities client had engaged my company for the purposes of performance testing new candidate SAP releases and performance regression testing existing SAP systems.  Time boxed system allocations were planned for and executed against.  Due to mistakes being made large scale performance tests failed resulting in the destruction of relational and transactional data that supported the tests.  This destroyed the planned timeboxed slots and delayed the release.
+		Action:
+			A number of actions were taken to deal with the situation.  The first step was to communicate with the client to acknowledge the failure, empathize with frustrations and outline a plan for recovery.  The next action was to reduce the time to recovery as much as possible.  The time effort for a reset was well known so we reduced the duration through resource redeployment and implemented.  
+		Result:
+			The customer was not happy with the delay but acknowledged that the remedial action urgency was suited to the gravity of the situation.  We retained the customer.
+		Retrospective:
+			The mistakes that were made were largely due to shortcuts being taken in an attempt to reduce time which were basically failure to follow expected practices.  Best practice enforcement had to be reinstated through use of checklists and reviews during preparation for execution.
+				
+2. Ownership
+	Think like an owner and don't sacrifice long term value. Act on behalf of the entire company. Never say "not my job". Long term value cannot be attained without experimentation.  Experimentation can't happen without failure.  Fail fast, learn and move.
+	
+	Example1:  Tell me about a time when you took on a task that was beyond your job responsibilities
+	
+		Context:
+			Structured performance testing is not something that is easily learned for a new start.  On the job learning is fine but tends to slow down delivery for the sake of education.  This was affecting delivery of services.
+		Action:
+			I shaped and positioned the concept of performance boot camp for new starts.  These people would receive intensive practical training for a period of 3 to 5 weeks before being deployed as junior delivery team members who then received further upskill on the job .  This was accepted by the MD and I implemented.
+		Result:
+			This set a delivery standard for the company and smoothed the effort for creating capacity with capability for the long run.
+		Retrospective:
+			Not every thought one has that leads to action is necessarily valuable.  I believe that it is wasteful to not validate the potential value of an idea with team members.  Long term value may be lost without that initial consideration.
+			
+	Example2:  Tell me about a time when you showed an initiative to work on a challenging project
+	
+		Context:  
+			I was approached by the MD who asked me to consider taking on a piece of work that he considered important and that was only challenging really because of its nature.  Testing legacy gaming application help files manually for localization and accuracy is like watching paint dry and that's what was asked of me.  I accepted ownership and was given a truckload of manual testers for the task. This was early 2000's.
+		Action:
+			I decided to invent.  I identified the really repetitive and time consuming portions of the manual process.  I worked with one other technical resource who built a customized management and reporting system whilst I built a simple iterative spider to automate retrieval and consolidation of help file pages.  These consolidated pages were opened by the manual testers who used text and language processing tools to identify anomalies.
+		Result:
+			The actual time taken to complete a testing cycle was approximately 20% of the original estimates.  A happy customer was the result.
+		Retrospective:
+			Sometimes great value exists within simplicity. Be open minded about what you are asked to do and apply yourself whole heartedly.  What comes out of that effort may be very worthwhile.
+				
+3. Invent and simplify
+	Expect and require innovation from your team and always find ways to simplify. Be externally aware, look for new ideas from everywhere, and are not limited by “not invented here." As we do new things, we accept that we may be misunderstood for long periods of time
+	
+	Example1:  Tell me about a time when you invented something.
+	
+		Context:  
+			I was approached by the MD who asked me to consider taking on a piece of work that he considered important and that was only challenging really because of its nature.  Testing legacy gaming application help files manually for localization and accuracy is like watching paint dry and that's what was asked of me.  I accepted ownership and was given a truckload of manual testers for the task. This was early 2000's.
+		Action:
+			I decided to invent.  I identified the really repetitive and time consuming portions of the manual process.  I worked with one other technical resource who built a customized management and reporting system whilst I built a simple iterative spider to automate retrieval and consolidation of help file pages.  These consolidated pages were opened by the manual testers who used text and language processing tools to identify anomalies.
+		Result:
+			The actual time taken to complete a testing cycle was approximately 20% of the original estimates.  A happy customer was the result.
+		Retrospective:
+			Sometimes great value exists within simplicity. Be open minded about what you are asked to do and apply yourself whole heartedly.  What comes out of that effort may be very worthwhile.
+					
+	Example2:  Tell me about a time when you tried to simplify a process but failed. What would you have done differently?
+	
+		Context:
+			In the company that I work for service delivery managers are not necessarily technical people and very often, those who are not, reach out to technical specialists for support as needed.  We landed a client for which technical services delivery was everything.  As the individual accountable for all service delivery in the business unit I realized that handoff latency between a service delivery manager and a technical specialist would be burdensome and time consuming.  I decided to be inventive with specialisms and allocation to roles.
+		Action:
+			I put a technical specialist suited to the customer's technical delivery requirements into the role of service delivery manager with the intention of killing two birds with one stone.  The idea was that the technical support and customer management effort would be a single person eliminating the support handoff totally.
+		Result:
+			The individual I selected was prone to going "under the hood" and very soon the client facing actions were neglected.  This led to internal and client issues that were unforseen. 
+		Retrospective:
+			I still believe that this arrangement can work but next time I do it I will ensure that the individual is one who is able to harmonize effectively.
+			
+4. Leaders are right a lot
+	Have strong judgements and instincts, seek diverse perspectives and work to disconfirm own beliefs
+	
+	Example1:  Tell me about a time when you were wrong.
+	
+		Context:
+			In the company that I work for service delivery managers are not necessarily technical people and very often, those who are not, reach out to technical specialists for support as needed.  We landed a client for which technical services delivery was everything.  As the individual accountable for all service delivery in the business unit I realized that handoff latency between a service delivery manager and a technical specialist would be burdensome and time consuming.  I decided to be inventive with specialisms and allocation to roles.
+		Action:
+			I put a technical specialist suited to the customer's technical delivery requirements into the role of service delivery manager with the intention of killing two birds with one stone.  The idea was that the technical support and customer management effort would be a single person eliminating the support handoff totally.
+		Result:
+			The individual I selected was prone to going "under the hood" and very soon the client facing actions were neglected.  This led to internal and client issues that were unforseen. 
+		Retrospective:
+			I still believe that this arrangement can work but next time I do it I will ensure that the individual is one who is able to harmonize effectively.
+			
+	Example2:  Tell me about a time when you had to work with insufficient information or incomplete data.
+	
+		Context:
+			Structured performance testing engagements more often than not are conducted using insufficient information.  The main cause of this is generally lack of understanding on the behalf of client role players.  One can pursue the information but this usually comes with a difficult and lengthy education effort.  The luxury of having time for this most often doesn't exist.  So one has to adapt, call on experience and extrapolation for the purpose.
+		Action:
+			In this situation the specification of performance testing involves drafting a plan that reflects rough "aggregation" for the industry in which the client operates.  Load profile models, user types and volumes, transaction types, acceptance upper and lower bound limits etc. values are filled with historical experience values and this is put to the client with the necessary caveat statements.
+		Result:
+			Unfortunately in most cases the client simply excepts the outcome offered the the "dark art practitioners".  Other clients are more inquisitive and begin questioning the approach and begin learning that their understanding and input is a prerequisite for successful performance assessment.
+		Retrospective:
+			I always try to promote the client education that is required prior to the engagement.  Getting the client to replace tendered values with client actual values is a positive step.  
+5. Frugality
+	Accomplish more with less.  Constraint breeds resourcefulness, self-sufficiency and invention. There are no extra points for growing headcount, budget size, or fixed expense.
+	
+	Example1:  Tell me about a time when you had to be frugal
+	
+		Context:
+			The willingness to spend on licensing for tools varies from customer to customer and industry to industry.  Retail is one of the industries in which our customers tend towards frugality especially those companies challenged by retail disruptors such as Amazon.  Tooling for services to be delivered are often internally developed or free open source options alone.
+		Action:
+			Quite a while back for a major retailer that owned a legacy low end hardware point of sale system, testing had to be automated. This involved developing a lightweight distributed testing system with a very small footprint agent deployed to the POS device.  This was done using a combination of open source tools and custom developed solutions that removed the processing burden from the POS hardware.
+		Result:
+			A successful and long term solution was implemented that is still running today.
+		Retrospective:
+			Quite often a solution can be found or developed without paying for it. The tradeoff between cost of purchase and development/maintenance is the consideration that must be made.
+			
+	Example2:  Describe a time when you had to rely on yourself to complete a task
+		Context:  
+			I was approached by the MD who asked me to consider taking on a piece of work that he considered important and that was only challenging really because of its nature.  Testing legacy gaming application help files manually for localization and accuracy is like watching paint dry and that's what was asked of me.  I accepted ownership and was given a truckload of manual testers for the task. This was early 2000's.
+		Action:
+			I decided to invent.  I identified the really repetitive and time consuming portions of the manual process.  I worked with one other technical resource who built a customized management and reporting system whilst I built a simple iterative spider to automate retrieval and consolidation of help file pages.  These consolidated pages were opened by the manual testers who used text and language processing tools to identify anomalies.
+		Result:
+			The actual time taken to complete a testing cycle was approximately 20% of the original estimates.  A happy customer was the result.
+		Retrospective:
+			Sometimes great value exists within simplicity. Be open minded about what you are asked to do and apply yourself whole heartedly.  What comes out of that effort may be very worthwhile.
+			
+6. Hire and develop the best
+	Leaders raise the performance bar with every hire and promotion. They recognize exceptional talent, and willingly move them throughout the organization. Leaders develop leaders and take seriously their role in coaching others. We work on behalf of our people to invent mechanisms for development like Career Choice.
+	
+	Example1:  What qualities do you look for in potential candidates when making hiring decisions?
+	
+		Context:
+			The company I work for delivers QA and QE services as one of its LOBs.  I serve in that LOB as well.  I am regularly involved with interviewing candidates for various available roles in the LOB.  It is easy to fall into the trap of looking for a unicorn.  
+		Action:
+			Rather than looking for the perfectly baked cake I tend rather to look for someone who possesses the pre-requisites to bake that cake. That individual must have the ingredients, the ability and eagerness to explore with, and create, new recipes with which to best use the ingredients.  The individual should also be passionate about the success of others understanding clearly that a team's success is his or her own.  I look for servant leadership qualities in people as I expect people to exercize those qualities in their daily jobs.
+		Result:
+			I am not always successful in finding the right person but this approach gives me the best shot of success.
+		Retrospective:
+			People do tend to learn patterns very quickly.  Quite often I can hear a learned response rather than a genuine one.  
+			
+	Example2:  Tell me about a time when you made a bad hire. When did you figure it out, and what did you do?
+	
+		Context:
+			The company I work for delivers QA and QE services as one of its LOBs.  I serve in that LOB as well.  I am regularly involved with interviewing candidates for various available roles in the LOB.  Rather than looking for the perfectly baked cake I tend rather to look for someone who possesses the pre-requisites to bake that cake. That individual must have the ingredients, the ability and eagerness to explore with, and create, new recipes with which to best use the ingredients.
+		Action:
+			I took this approach into an interview with a young lady who had done well in written assessments and had interviewed very well according to the aforementioned principles.  I decided to hire her.  After about 6 months it became evident that she was under performing and her attitude was deteriorating.  After meeting with her and her career manager a few times it was clear that she was unhappy in the role that she occupied.  She wanted to change tack in her career so this was planned and implemented between the three of us.
+		Result:
+			The individual took on a new role and occupied that happily over the following 2 years.
+		Retrospective:
+			A good interview does not necessarily a permanently good team member make.  People grow and change and as a leader you need to stay in tune with those changes in your team members.
+			
+7. Earn trust
+	Leaders listen attentively, speak candidly, and treat others respectfully. They are vocally self-critical, even when doing so is awkward or embarrassing. Leaders do not believe their or their team’s body odor smells of perfume. They benchmark themselves and their teams against the best.
+	
+	Example1:  What would you do to gain the trust of your team?
+	
+		Context:
+			I have led quite a few teams in my career and I have learned from each instance.  
+		Action:
+			In every team I have lead I have attempted to be a leader who is firmly rooted in reality whilst motivating the team to take a trip with me into the unknown.  I don't expect any team member to do something that I wouldn't and on the flip side I expect each one to to also do as I would.  I have always nurtured a culture of mutual respect between team members but without allowing that respect to become restrictive to the teams progress. If someone needs to call out another member or even the team lead they have permission to do so within the permits of team culture. Retrospective improvement has never been limited to a scope internal to the team.  Motivating a team to equal or better another is important for morale and growth.  I have been a leader who encourages informal 180 degree review between all members.
+		Result:
+			The teams that I have lead have been mostly harmonius and effective in delivery.  I certainly have had problematic individuals to deal with but they have generally been the exception rather than the norm.  I believe that is because I earned the trust of the majority of each team early on in the formation of that team.
+		Retrospective:
+			The ask consists of the following:
+				Honestly representing your team inwards and outwards, for best or for worst.
+				Setting high standards, actively enforcing them, and living those standards yourself as an example.
+				Expecting the best from the team and communicating this to them.
+				Celebrating and rewarding success and allowing failure for calculated risk taking.
+			
+	Example2:  Tell me about a time when you had to tell a harsh truth to someone
+	
+		Context:
+			As a lead of the services innovation team I hand picked a few team members who would work with me from within the consultancy.  One of the individuals I picked was a strongly innovative individual who is highly opinionated at times to the point of being argumentative.  He is also older than me.  The services innovation team would meet with sales and account management folk to plan for the future.  During conversation this individual became quite controntational with others on the call to the point of offense.
+		Action:
+			I stepped in and requested that the topic be discussed later.  After the call I took the individual aside and spoke to him.  My approach was firstly to show him respect and and to empathise with his points of view, some of which were valid.  Next I made it clear to him that he was breaching company policy with his behaviour and was running the risk of disciplinary action.  I spoke with him about alternative approaches to the issues of contention and agreed with him that he would apologise to those he offended with his behaviour.  I also agreed to represent his interests with any ensuant action that may arise, which ultimately did.
+		Result:
+			A less severe displinary action followed and the individual now consults me in confidence about situations that he fears a repeat in.
+		Retrospective:
+			Positive can come from a bad situation. Do not categorize and label an individual as failed too quickly.
+			
+8. Insist on the highest standards
+	Many may think that these standards are unreasonably high.  Leaders are continually raising the bar and drive their teams to deliver high quality products, services, and processes. Leaders ensure that defects do not get sent down the line and that problems are fixed so they stay fixed.  Reducing defects at the root is one of the most effective ways to reduce cost structure.
+	
+	Example1:  Tell me about a time when you were dissatisfied with the quality of a project at work. What did you do to improve it?
+	
+		Context:
+			I was engaged to lead delivery of unit and integration testing of a newly developed API consisting of set of web services for a UK based insurance organization in about 2007. There were quite a few services and the volume of testing assets grew fairly quickly.  Part of the deliverable to the client was testing documentation and at a point a colleague pointed out to me that what we had produced was potentially sub-standard from the perspective of code clarity.
+		Action:
+			Our testing clients were written in Java.  I made the decision to improve the standard of delivery by introducing dynamic documentation in the form of Javadoc to address the code clarity issue.  The definition of done was altered to include a minimum level of Javadoc code annotation and the team would follow this new standard going forward, after retrofitting code already produced.  The team wasn't too happy about the extra work but once the pattern had been adopted the enjoyment level was raised.
+		Result:
+			This set a standard that satisfied the client and became the bar going forward.
+		Retrospective:
+			Retrospective analysis and improvement action are an absolute must.  Without these decay will inevitably set in and be followed by mediocrity and/or failure.
+			
+	Example2:  Tell me about a time when you motivated others to go above and beyond
+	
+		Context:
+			Automating functional testing has many dependencies including system availability and reliability.  Quite often these dependencies cannot be met and automated testing grinds to a halt with deadlines targets coming under threat.  Such a situation occurred at one of our clients who's processes would make a call to a web service to validate TV licenses.  A team member approached about a blocker which was the absence of this service to respond to the process that his automated tests were driving.
+		Action:
+			I asked this individual for a solution to the problem.  He could identify a solution at a high level but had no frame of reference for an implementation.  We spoke about the technical requirements and I walked him through some of the possible solutions for virtualizing the service.  I then challenged him to attempt building the solution so that he could benefit both from learning for himself and then from educating his colleagues. 
+		Result:
+			He implemented Hoverfly for the purpose and convinced the developers concerned to point the processes at the virtualized instance when promoting code to the test environment.  He overcame his problem and began showing others how to do things as well. 
+		Retrospective:
+			One has to actively look for opportunities in which others can be enabled.  This means you have to learn to be outwardly aware of the situation that others find themselves in.  This takes effort as it isn't always obvious.
+			
+9. Learn and be curious
+	Leaders are never done learning and always seek to improve themselves. They are curious about new possibilities and act to explore them.
+	
+	Example1:  Tell me about an important lesson you learned over the past year.
+	
+		Context:
+			The organization I work for has had a troublesome past 2 years. I have been involved in various threads which have affected me personally.  I am naturally a curious person who likes to learn new things in which I perceive value. In the last few months I realized that I have been slowly stagnating and prioritizing engaging with destructive issues over constructive learning.
+		Action:
+			I made a decision to get back on the horse around Nov 20.  I did so picking up various upskilling threads ranging from certifications related to SAP quality engineering, learning Python and broadening my general knowledge about IOT and cloud.
+		Result:
+			As a result I have realized that it is easy to become complacent or overwhelmed by everyday issues at the expense of a purpose filled future. 
+		Retrospective:
+			It is easy to stop progressing by becoming complacent.  Goal setting with objectives helps change this.
+			
+	Example2:  Tell me about a time when you made a smarter decision with the help of your curiosity.
+	
+		Context:
+			I became a first time home owner in 1992.  I was studying for a career change to IT/Software industry at about the same time.  I was playing with MS Excel's functions when I came across the pmt function.  I am also a person who tends to be frugal so it caught my attention.
+		Action:
+			I investigated the function and learned that by paying a little more regularly I could save a whole lot in the long run.
+		Result:
+			I have never forgotten that and I have never taken longer than 10 years to repay a major bank loan saving me hundreds of thousands of Rand.
+			
+10. Bias for action
+	Speed matters in business.  We value taking calculated risk.  Experimentation is necessary for success but is most often associated with failure.  The few big successes compensate for the failures.
+	Example1:  Describe a situation when you took the initiative to correct a problem or a mistake rather than waiting for someone else to do it
+		Context:
+			A large and very important British energy utilities client had engaged my company for the purposes of performance testing new candidate SAP releases and performance regression testing existing SAP systems.  Time boxed system allocations were planned for and executed against.  I joined this team taking ownership for its deliverables and found that in preparation for execution a 2 week manual testing data ETL process was being repeated per cycle.  I challenged the team about this and received unsatisfactory responses.  This manual process increased the risk of failure as the data would be "burnt" if a test failed and could not be used again. No-speed in this case mattered greatly.
+		Action:
+			As the next execution was almost upon us I decided to build an ETL utility so that man hours could be recovered on the next cycle.
+		Result:
+			2 million rows of data were automatically processed in about 20 minutes rather than 2 weeks.  This reduced the risk of test failure allowing us to re-run ETL and refresh the data state within a given time box if necessary.
+		Retrospective:
+			Sometimes things just need to get done. Without steering a team to ensure maximum efficiency in action one cannot assume that it will just exist because you think it should be a common sense thing.  If your hands need to get dirty then so be it.
+			
+	Example2:  Tell me about a time when you required some information from somebody else, but they weren't responsive. What did you do?
+		Context:
+			Structured performance testing engagements more often than not are conducted using insufficient information.  The main cause of this is generally lack of understanding on the behalf of client role players.  One can pursue the information but this usually comes with a difficult and lengthy education effort.  The luxury of having time for this most often doesn't exist.  So one has to adapt, call on experience and extrapolation for the purpose.
+		Action:
+			The specification of the performance testing involves drafting a plan that reflects the "aggregation" for the industry in which the client operates.  Load profile models, user types and volumes, transaction types, acceptance upper and lower bound limits etc. values are filled with aggregations and this is put to the client with the necessary caveat statements.
+		Result:
+			Unfortunately in most cases the client simply excepts the outcome offered the the "dark art practitioners".  Other clients are more inquisitive and begin questioning the approach and begin learning that their understanding and input is a prerequisite for successful performance assessment.
+		Retrospective:
+			I always try to promote the client education that is required prior to the engagement.  Getting the client to replace tendered values with client actual values is a positive step.  
+			
+11. Have a backbone. Disagree and commit
+	Leaders are obligated to respectfully challenge decisions when they disagree, even when doing so is uncomfortable or exhausting. Leaders have conviction and are tenacious. They do not compromise for the sake of social cohesion. Once a decision is determined, they commit wholly.
+	Example1:  Tell me about an unpopular decision of yours.
+		Context:
+			In the company that I work for service delivery managers are not necessarily technical people and very often, those who are not, reach out to technical specialists for support as needed.  We landed a client for which technical services delivery was everything.  As the individual accountable for all service delivery in the business unit I realized that handoff latency between a service delivery manager and a technical specialist would be burdensome and time consuming.  I decided to be inventive with specialisms and allocation to roles.  The decision I made was unpopular with management.
+		Action:
+			I put a technical specialist suited to the customer's technical delivery requirements into the role of service delivery manager with the intention of killing two birds with one stone.  The idea was that the technical support and customer management effort would be a single person eliminating the support handoff totally.
+		Result:
+			The individual I selected was prone to going "under the hood" and very soon the client facing actions were neglected.  This led to internal and client issues that were unforseen. 
+		Retrospective:
+			I still believe that this arrangement can work but next time I do it I will ensure that the individual is one who is able to harmonize effectively.
+				
+	Example2:  Describe a time when you disagreed with the approach of a team member. What did you do?
+		Context:
+			Along with the business unit, the business unit management team of which I am a member, has had a troublesome past 2 years.  New members have replaced old and brought little in the way of new ideas and approaches with them.  Some of these new members have very little understanding of the market we serve and the services we offer.  This has resulted in client facing individuals with very little experience in shaping solutions and proposals for those solutions.  We now generally have a reactive approach to positioning services in which a client facing individual will be client led to solution rather than the other way around.  These people then approach the services team asking for a solution.   
+		Action:
+			I have pushed back on this trend arguing that the situation makes us followers rather than leaders.  I have insisted that those interfacing with clients are fully educated in what we do and are capable of subtley leading a client at the time of discussion rather than having to shuttle back to the services team for technical support.
+		Result:
+			This has caused the new MD to think about the current situation and about ways to improve it.  It is an action in progress.
+		Retrospective:
+			One has to take a stand and defend it when one firmly believes that an alternative will improve things.  This can make you unpopular at first and possibly also for a long time.  It can also have the opposite effect.
+12. Dive deep
+	Leaders operate at all levels, stay connected to the details, audit frequently, and are skeptical when metrics and anecdote differ. No task is beneath them.
+	Example1:  Tell me about the most complicated problem you've had to deal with.
+		Context:
+			I was working as part of a team delivering automation of the Hilux assembly plant in Toyota Durban. We had a situation in which the  vehicle arrival at a station and the associated lift action at the station were not synchronizing correctly.  Despite parallel code reviews between the conveying system and the lift system we could not isolate the issue.  We had been working for 18 hours straight with no rest. 
+		Action:
+			We decided to dive deep and go back to basics.  I did a physical time and motion correlation on the conveyor and lift cycles.  This meant I physically stared at lift and conveyor positions noting where they were at what times. I did this for six hours, which correlated to multiple failed cycles of vehicle delivery.
+		Result:
+			I discovered that an untensioned conveyor slat was protruding vertically by about 2mm outside of tolerance and was therefore catching the beam of a proxy sensor meant for the vehicle wheel.  This sensor input would trigger the execution of a portion of code that initiated an incorrect sequence. 
+		Retrospective:
+			Many parts make a whole and quite often the problem you face and have to overcome is not necessarily in your control.  This means one has to think beyond the scope of your engagement to ensure that all considerations are made and dealt with.  This could mean dealing with others external to your team.
+			
+	Example2:  Tell me about something that you have learned in your role
+		Context:
+			As the leader of a performance testing delivery team I set out my expectations with regards to standards for quality of testing and operational deliveries.  The team agreed to these and went about their business.  I trusted them to do as requested and I do not consider myself a micromanager so I backed off reviews of deliverables.  When we experienced a testing failure I had to investigate and found that whilst deliverables were being produced the understanding of them was flawed.
+		Action:
+			I setup regular reviews and deliverable walkthroughs to ensure that quality of testing was maintained.
+		Result:
+			The lesson I learned was that if I disconnected myself from the details and tried to lead from a shallow level only I would face similar occurrences in the future.
+		Retrospective:
+			Retrospective analysis and improvement action are an absolute must.  Without these decay will inevitably set in and be followed by mediocrity and/or failure.
+13. Deliver results  
+	Focus on the key inputs of your business and deliver with the right quality in a timely fashion.  Defects are very costly.  
+	Example1:  Tell me about a time when you were able to persevere through setbacks and overcome obstacles to deliver outstanding results.
+		Context:
+			TRT couriers engaged the company I work for to provide performance testing services.  There was very little time to prepare and we were flown to another country to deliver these services in that location.  Upon arrival we faced a very hostile customer for some reason.  Presumably there were politics that we did not understand yet we had to deal with.  This led to very strained situations with the customer in a deliver that was very technically demanding from a preparation and execution perspective.  Our own client engagement and account management people did not provide any real assistance with this situation and it was left to us to get on with it and deliver results.
+		Action:
+			This engagement lasted for 3 months.  We had to build relationships and understand the technical domain very quickly.  This required outside of usual hours effort from the whole team to start implementing what we had learnt about during working hours upskill sessions.  
+		Result:
+			Ultimately we delivered the required services on time despite on going hostility from varioujs indivduals who worked for the client.
+		Restrospective:
+			There will be times when your work environment is not necessarily quite to your liking.  This doesn't take away from the reason for your presence in that environment which is to deliver on the job.  One has to be able to keep focus on that.
+			
+	Example2:  How you check your progress against your goals?
+		Context:
+			Around mid 2006 a new startup aiming at the content streaming market was launched in London.  I joined the delivery team in a testing role and we embarked on a greenfields agile based delivery of value to the client.
+		Action:
+			In the now usual agile manner the client built a prioritized product backlog of initiatives which was visited every 2 week sprint for the purposes of grooming.  During sprint planning initiatives would be deconstructed into smaller focus units right down to subtasks based on the definition of done. Estimation and actual timings were maintained for the purpose of re-estimation and step change as was necessary.  Business risk was qualified and quantified by work unit as a function of impact vs frequency metrics.  Risk and priority were loosely associated but really served different purposes.  The measure of risk to initiative realization was kept alongside the progression of the sum of the components of each intiative.  This was reviewed daily and by sprint with corrective actions being taken to remain on track to meet the initiatives that represented business risk above a predefined level.
+		Result:
+			The customer went live with the streaming product, however they failed to factor in one major business risk which was from a competitor named YouTube.  
+		Retrospective:
+			Formalized, quick and lean feedback loops are very valuable when furnished with the right information.  One should, however, never lose sight of the bigger picture.
+			
+	Example3:  Tell me about the most complex problem you've had to work on.
+		Context:
+			I was working as part of a team delivering automation of the Hilux assembly plant in Toyota Durban. We had a situation in which the  vehicle arrival at a station and the associated lift action at the station were not synchronizing correctly.  Despite parallel code reviews between the conveying system and the lift system we could not isolate the issue.  We had been working for 18 hours straight with no rest. 
+		Action:
+			We we had a strict plant opening timeline to reach and we had to produce results.  We decided to dive deep and go back to basics.  I did a physical time and motion correlation on the conveyor and lift cycles.  This meant I physically stared at lift and conveyor positions noting where they were at what times. I did this for six hours, which correlated to multiple failed cycles of vehicle delivery.
+		Result:
+			I discovered that an untensioned conveyor slat was protruding vertically by about 2mm outside of tolerance and was therefore catching the beam of a proxy sensor meant for the vehicle wheel.  This sensor input would trigger the execution of a portion of code that initiated an incorrect sequence. 
+		Retrospective:
+			Many parts make a whole and quite often the problem you face and have to overcome is not necessarily in your control.  This means one has to think beyond the scope of your engagement to ensure that all considerations are made and dealt with.  This could mean dealing with others external to your team.
+14. Think Big
+	Thinking small is a self-fulfilling prophecy. Leaders create and communicate a bold direction that inspires results. They think differently and look around corners for ways to serve customers.
+	Example1:  Tell me about a time you took a calculated risk in order to achieve a professional goal. What were the tradeoffs? What was the outcome?
+		Context:
+			In dealing with one of the big 4 banks in SA we had been channeled into dealing with particular bank department that was eons behind latest developments in terms of quality assurance practice.  We were being reduced to a resource augmentation provider rather than a valuable services provider and our relationship with the department was one that was shackled and reactive to initiatives led by this department which themselves were redundant and non-progressive.
+		Action:
+			After promoting the idea with the management team of the company, it made a call to "think big" and to go around this department in order to impact the larger bank. I was the individual allocated to doing it.  I subsequently started working my way through the LOBs of the bank meeting with stakeholders to expose them to the kinds of services that they were not getting from the internal department at the bank.  This caused great interest amongst these stakeholders and soon the word started spreading by mouth throughout the bank.
+		Result:
+			This was a "think big" unhappy ending for me specifically.  Word reached the internal department head and I was personally banned from entering the bank.	
+		Retrospective:
+			I don't regret doing that because being boxed the way I was was extremely frustrating. There are some battles that you can't win but that doesn't mean you shouldn't try new and different approaches to the same problem.
+			
+	Example2:  How do you drive adoption for your vision/ideas? How do you know how well your idea or vision has been adopted by other teams or partners? Give a specific example highlighting one of your ideas. 
+		Context:
+			With pressure to increase speed to market of quality products has come the burden of being able to ensure quality at the appropriate cadence.  Things which are repeated should be automated for efficiency.  This includes a wide scope of activities including testing.  With the pressure to automate repetitive activities comes a demand for the appropriate skills to make it so.  Part of my current role is to drive the strategy approach for capacity and capability in this regard.  It is evident in the market that the same thing is on every organization's mind as the demand for technically skilled individuals outweighs the supply.  Part of my bigger picture is to reverse the trend of escalating demand for skills in the area of test automation.
+		Action:
+			Testing automation itself doesn't necessarily require all technical know how.  There are testing activities that require no "technical skill" at all but rather a knowledge of the principles of testing and of the domain being tested. My action was to simplify the process of testing automation reducing the reliance on individuals with technical know how to a minimum.  I was not alone in this thinking as certain pay tool vendors had already embarked on this pursuit understanding the previously explained tension very well.  I initially started this evangelizing the use open source solutions through the use of application nROI statements and eventually added pay solutions to the mix once the argument for  the approach was more widely accepted. 
+		Result:
+			Internally the simplified approach is well accepted.  The job is to continue evangelizing the benefits to customers.  
+		Retrospective:
+			Empire building exists in most organizations.  People involved in empire building will defend their decisions and choices to the very end.  When there is no way around an empire builder a good skill to have is the ability to recognize the empire builder and then to convince him/her that your ideas are his/hers.
+			
+15. Strive to be Earth’s Best Employer
+	Leaders work every day to create a safer, more productive, higher performing, more diverse, and more just work environment. They lead with empathy, have fun at work, and make it easy for others to have fun. Leaders ask themselves: Are my fellow employees growing? Are they empowered? Are they ready for what’s next? Leaders have a vision for and commitment to their employees’ personal success, whether that be at Amazon or elsewhere.
+	Example1:
+		Context:
+			
+		Action:
+			
+		Result:
+				
+	Example2:
+		Context:
+			
+		Action:
+			
+		Result:
+			
+16. Success and Scale Bring Broad Responsibility
+	We started in a garage, but we’re not there anymore. We are big, we impact the world, and we are far from perfect. We must be humble and thoughtful about even the secondary effects of our actions. Our local communities, planet, and future generations need us to be better every day. We must begin each day with a determination to make better, do better, and be better for our customers, our employees, our partners, and the world at large. And we must end every day knowing we can do even more tomorrow. Leaders create more than they consume and always leave things better than how they found them.
+	Example1:
+		Context:
+			
+		Action:
+			
+		Result:
+				
+	Example2:
+		Context:
+			
+		Action:
+			
+		Result:
+			
+			
+			
+
+
+
+Context:
+			As an account manager I engaged with the CIO of a business unit at FNB.  While I never made real traction with that business unit I built a solid relationship with the CIO.  This was based on regular informal discussions about his technical and process related challenges and potential solutions therefore.  He was moved to another business unit.
+		Action:
+			This relationship never grew formal but it grew in meaning.  Regular whiteboarding sessions were held on site in which solutions to improve the value of testing were framed.  A backlog of improvements evolved. The improvements were mostly about automation of testing, the processes feeding automated testing and the actual continuous testing solution 
+		Result:
+			These improvements, mostly technical and some process, were implemented resulting in his personal KPIs being vastly exceeded.  There was some benefit to me as well the greatest of which was probably the relationship.

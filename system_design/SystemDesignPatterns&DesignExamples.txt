@@ -1,0 +1,420 @@
+System Design Patterns:
+	1. Bloom filters
+		Problem:  
+			large set of structured data (identified by record IDs) stored in a set of data files, what is the most efficient way to know which file might contain our required data? We don’t want to read each file, as that would be slow, and we have to read a lot of data from the disk
+		Solution:
+			Bloom filters  tell whether an element may be in a set, or definitely is not
+			An empty Bloom filter is a bit-array of m bits, all set to 0. There are also k different hash functions, each of which maps a set element to one of the m bit positions.
+				To add an element, feed it to the hash functions to get k bit positions, and set the bits at these positions to 1.
+				To test if an element is in the set, feed it to the hash functions to get k bit positions.
+					If any of the bits at these positions is 0, the element is definitely not in the set.
+					If all are 1, then the element may be in the set.
+		BigO 	
+			O(n) space
+			O(1) time
+		Example: BigTable#
+			In BigTable (and Cassandra), any read operation has to read from all SSTables that make up a Tablet. If these SSTables are not in memory, the read operation may end up doing many disk accesses. To reduce the number of disk accesses, BigTable uses Bloom filters.
+
+			Bloom filters are created for SSTables (particularly for the locality groups). They help reduce the number of disk accesses by predicting if an SSTable may contain data corresponding to a particular row or column pair. For certain applications, a small amount of Tablet server memory used for storing Bloom filters drastically reduces the number of disk-seeks, thereby improving read performance.
+	2. Consistent Hashing:
+		Three flavours:
+			1. Map physical node to n virtual nodes (tokens). BAD - Data partitioning (partition by tokens) and data placement (storage nodes) are dependent.
+			2. Divide hash space into n fixed equally sized partitions and each physical node is assigned a random number of nodes (tokens). BAD - Nodes handing data off scan their local persistence store leading to slower bootstrapping; recalculation of Merkle trees; and no easy way of taking snapshots.
+			3. Divide hash space into n fixed equally sized partitions and each physical node is assigned a count of (total count of partitions / total count of virtual nodes) = nodes (tokens). BAD - adding or removing nodes requires us to preserve its properties (i.e. T = Q/S). BEST OF THE THE 3.
+		Problem:
+			The act of distributing data across a set of nodes is called data partitioning. There are two challenges when we try to distribute data:
+				How do we know on which node a particular piece of data will be stored?
+				When we add or remove nodes, how do we know what data will be moved from existing nodes to the new nodes? Additionally, how can we minimize data movement when nodes join or leave?
+		Solution:
+			Use the Consistent Hashing algorithm to distribute data across nodes. Consistent Hashing maps data to physical nodes and ensures that only a small set of keys move when servers are added or removed.
+				Consistent Hashing introduces a new scheme of distributing the tokens to physical nodes. Instead of assigning a single token to a node, the hash range is divided into multiple smaller ranges, and each physical node is assigned several of these smaller ranges. Each of these subranges is considered a Vnode. With Vnodes, instead of a node being responsible for just one token, it is responsible for many tokens (or subranges).
+				Practically, Vnodes are randomly distributed across the cluster and are generally non-contiguous so that no two neighboring Vnodes are assigned to the same physical node or rack. Additionally, nodes do carry replicas of other nodes for fault tolerance. Also, since there can be heterogeneous machines in the clusters, some servers might hold more Vnodes than others. 
+				In conjunction with VNodes can be used for effective data partitioning and replication for high availability. Advantages are:
+					1. Vnodes help spread the load more evenly across the physical nodes on the cluster by dividing the hash ranges into smaller subranges, this speeds up the rebalancing process after adding or removing nodes.
+					2. Vnodes make it easier to maintain a cluster containing heterogeneous machines. This means, with Vnodes, we can assign a high number of sub-ranges to a powerful server and a lower number of sub-ranges to a less powerful server.
+					3. n contrast to one big range, since Vnodes help assign smaller ranges to each physical node, this decreases the probability of hotspots.
+				To ensure highly available and durability, Consistent Hashing replicates each data item on multiple N nodes in the system where the value N is equivalent to the replication factor
+				Consistent hashing presents some challenges:
+					1.  random assignment of node positions on the ring leading to non-uniform data and load distribution.
+					2.  when a node is added or removed, some data has to be copied by retrieving a set of keys from individual nodes which is usually inefficient and slow
+				There are 3 different strategies that attempt to deal with the 2 challenges above:
+					1.  Mapping Node to T Tokens
+						map each node to T positions in the ring, called “tokens”
+						Benefits:
+							When a node is added, it has a roughly equivalent amount of load compared to the existing available nodes
+							When a node is removed, or becomes unavailable due to failures, the load handled by this node is distributed back in a reverse process, effectively evenly distributing the load across the remaining available nodes.
+						Replication for availability
+							Each data item is replicated at N nodes randomly and across data centres.
+						Always writable
+							allow changes to propagate to replicas in the background, and concurrent, disconnected work is tolerated
+							This process of conflict resolution introduces two problems: when to resolve them and who resolves them
+							Consistency - conflict resolution - When?
+								Pushing the conflict resolution to the reads ensures that writes are never rejected; Reads won’t be rejected when data version conflict is detected; It is now a question of who and how will be resolved?.
+							Consistency - conflict resolution - Who?
+								can be done by the data store itself or the application client
+								Client:
+									The application client is aware of the data schema and the business logic, and therefore, it can decide on the conflict resolution.
+									On reads, when conflict versions are detected, the application client can choose to “merge” the conflicting versions
+								Datastore:
+									choices are rather limited and can only use simple policies, such as timestamp-based reconciliation logic of “last write wins” 
+							Consistency - conflict resolution - How?
+								Data versioning allows us to detect, resolve conflicting versions and hence, ensure data consistency. Each update performed by a node is treated as a new and immutable version of the data. A version consists of (node, counter) pairs i.e. [(N, c), …], where N is the node coordinated the write request.
+								in the presence of failures combined with concurrent updates, version (parallel) branching may happen resulting in conflicting versions of an item. In this case, the multiple branches of data are collapsed into one.
+							Durability
+								Uses Quorom to ensure durability at the expense of lower latency/higher availability.
+								The more nodes involved in Quorom decision the higher the latency/lower the availbility.
+								Temporary failures: hinted handoff. a data item that would normally have lived on B will now be sent to node X (a temporary replica of B). The data item sent to replica X will have a hint in its metadata that suggests which node was the intended recipient of the replica (in this case B).  Upon detecting that B has recovered, X will attempt to deliver the data to B.
+								Long-lasting failures: Replica sync:  replica synchronization protocol that uses Merkle tree is used to keep the replicas synchronized and detect the inconsistencies.
+						Challenges with Mapping Node to T Tokens strategy 
+							When a new node joins the system, the nodes handling the data in the key ranges off to the new node have to scan their local persistence store to retrieve the appropriate set of data items.  Slow and cumbersome in production.
+							When a node joins or leaves the system, the key ranges handled by some other nodes change, and the Merkle trees for the new ranges need to be recalculated.  Non trivial in production.
+							no easy way to take a snapshot of the entire keyspace due to the randomness in key ranges, and this makes the process of archival complicated.
+						issue with this strategy is that data partitioning (partition by tokens) and data placement (storage nodes) are dependent; It is not possible to add or remove nodes without affecting data partitioning.
+					2. Mapping Node to T Tokens & Equal sized Q partitions
+						In this strategy, the hash space is divided into Q equally sized fixed partitions (or key ranges) and each node is assigned T random tokens.
+						tokens do not decide the partitioning they only define nodes positions on the ring
+						Benefits:
+							Decoupling of partitioning and partition placement. 
+							Enables changing the placement scheme at runtime. Adding or removing a node doesn’t change the partition (key range) of any data item.
+						Downside:
+							Nodes handing data off scan their local persistence store leading to slower bootstrapping; recalculation of Merkle trees; and no easy way of taking snapshots.
+					3. Mapping Node to Q/S Tokens & Equal sized Q partitions
+						divides the hash space into Q (count of) equally sized partitions, and data placement is decoupled from data partitioning
+						each node is assigned Q/S (S total count nodes in system) tokens (i.e. T = Q/S). The number of tokens changes as we add or remove nodes.
+						Benefits:
+							Faster bootstrapping and recovery. Since partition key ranges are fixed, they can be stored in separate files, and therefore, a partition can be relocated as a unit by simply transferring the file, avoiding random accesses needed to locate specific items.
+							Ease of archival: The partition files can be archived separately. By contrast to previous strategies in which the tokens are chosen randomly, and archiving the data stored requires retrieving the keys from individual nodes separately and is usually inefficient and slow.
+						Downside:
+							adding or removing nodes requires us to preserve its properties (i.e. T = Q/S).		
+		Examples
+			Dynamo and Cassandra use Consistent Hashing to distribute their data across nodes.
+	3. Quorum:
+		Problem:
+			how to make sure that all replicas are consistent, i.e., if they all have the latest copy of the data and that all clients see the same view of the data?
+		Solution:
+			a quorum is the minimum number of servers on which a distributed operation needs to be performed successfully before declaring the operation’s overall success.
+			Data is replicated across multiple servers for fault tolerance and high availability.
+			How to make sure that all replicas are consistent?
+			Quorum is the minimum number of servers on which a distributed operation needs to be performed successfully before declaring the operation’s overall success.
+				Quorum is achieved when nodes follow the below protocol: R + W > N, where:
+				N = nodes in the quorum group
+				W = minimum write nodes
+				R = minimum read nodes
+			Best performance (throughput/availability) when 1 < R < W < N, because reads are more frequent than writes in most applications	
+		Caveat:
+			Quorom can lead to other problems: lower availability, inconsistency.
+		Examples
+			For leader election, Chubby uses Paxos, which use quorum to ensure strong consistency.
+			As stated above, quorum is also used to ensure that at least one node receives the update in case of failures. For instance, in Cassandra, to ensure data consistency, each write request can be configured to be successful only if the data has been written to at least a quorum (or majority) of replica nodes.
+			Dynamo replicates writes to a sloppy quorum of other nodes in the system, instead of a strict majority quorum like Paxos. All read/write operations are performed on the first NN healthy nodes from the preference list, which may not always be the first NN nodes encountered while walking the consistent hashing ring.	
+	4. Leader Follower
+		Problem:
+			Quorom can lead to other problems: lower availability, inconsistency.
+		Solution:
+			Allow only a single server (called leader) to be responsible for data replication and to coordinate work.
+			At any time, one server is elected as the leader. This leader becomes responsible for data replication and can act as the central point for all coordination. The followers only accept writes from the leader and serve as a backup. In case the leader fails, one of the followers can become the leader. In some cases, the follower can serve read requests for load balancing.
+		Examples#
+			In Kafka, each partition has a designated leader which is responsible for all reads and writes for that partition. Each follower’s responsibility is to replicate the leader’s data to serve as a “backup” partition. This provides redundancy of messages in a partition, so that a follower can take over the leadership if the leader goes down.
+			Within the Kafka cluster, one broker is elected as the Controller. This Controller is responsible for admin operations, such as creating/deleting a topic, adding partitions, assigning leaders to partitions, monitoring broker failures, etc. Furthermore, the Controller periodically checks the health of other brokers in the system.
+			To ensure strong consistency, Paxos (hence Chubby) performs leader election at startup. This leader is responsible for data replication and coordination.	
+	5. Write ahead log
+		Problem:
+			Machines can fail or restart anytime. If a program is in the middle of performing a data modification, what will happen when the machine it is running on loses power? When the machine restarts, the program might need to know the last thing it was doing. Based on its atomicity and durability needs, the program might need to decide to redo or undo or finish what it had started. How can the program know what it was doing before the system crash?
+		Solution:
+			To guarantee durability and data integrity, each modification to the system is first written to an append-only log on the disk. This log is known as Write-Ahead Log (WAL) or transaction log or commit log. 
+			Each log entry should contain enough information to redo or undo the modification. The log can be read on every restart to recover the previous state by replaying all the log entries. Using WAL results in a significantly reduced number of disk writes, because only the log file needs to be flushed to disk to guarantee that a transaction is committed, rather than every data file changed by the transaction.
+			Each node, in a distributed environment, maintains its own log. WAL is always sequentially appended, which simplifies the handling of the log. Each log entry is given a unique identifier; this identifier helps in implementing certain other operations like log segmentation(discussed later) or log purging.
+		Examples
+			Cassandra: To ensure durability, whenever a node receives a write request, it immediately writes the data to a commit log which is a WAL. Cassandra, before writing data to a MemTable, first writes it to the commit log. This provides durability in the case of an unexpected shutdown. On startup, any mutations in the commit log will be applied to MemTables.
+			Kafka implements a distributed Commit Log to persistently store all messages it receives.
+			Chubby: For fault tolerance and in the event of a leader crash, all database transactions are stored in a transaction log which is a WAL.
+	6. Segmented Logs
+		Problem:
+			A single write ahead log can become difficult to manage. As the file grows, it can also become a performance bottleneck, especially when it is read at the startup. Older logs need to be cleaned up periodically or, in some cases, merged. Doing these operations on a single large file is difficult to implement.
+		Solution:
+			Break down the log into smaller segments for easier management.
+			A single log file is split into multiple parts, such that the log data is divided into equal-sized log segments. The system can roll the log based on a rolling policy - either a configurable period of time (e.g., every 4 hours) or a configurable maximum size (e.g., every 1GB).
+		Examples:
+			Cassandra uses the segmented log strategy to split its commit log into multiple smaller files instead of a single large file for easier operations. As we know, when a node receives a write operation, it immediately writes the data to a commit log. As the Commit Log grows in size and reaches its threshold in size, a new commit log is created.
+			Kafka uses log segmentation to implement storage for its partitions. As Kafka regularly needs to find messages on disk for purging, a single long file could be a performance bottleneck and error-prone. For easier management and better performance, the partition is split into segments.
+	7. High water mark
+		Problem:
+			Leader Follower implemented and Leader implements write ahead log. Leader fails and a follower will be appointed leader. Followers may not have up to date transactions.  Transactions exist on WAL but it cannot be accessed. New leader and followers must know what part of log is safe to expose to clients. How?
+		Solution:
+			Keep track of the last log entry on the leader, which has been successfully replicated to a quorum of followers. The index of this entry in the log is known as the High-Water Mark index. The leader exposes data only up to the high-water mark index.
+			For each data mutation, the leader first appends it to WAL and then sends it to all the followers. Upon receiving the request, the followers append it to their respective WAL and then send an acknowledgment to the leader. The leader keeps track of the indexes of the entries that have been successfully replicated on each follower. The high-water mark index is the highest index, which has been replicated on the quorum of the followers. The leader can propagate the high-water mark index to all followers as part of the regular Heartbeat message. The leader and followers ensure that the client can read data only up to the high-water mark index. This guarantees that even if the current leader fails and another leader is elected, the client will not see any data inconsistencies.
+		Examples:
+			Kafka: To deal with non-repeatable reads and ensure data consistency, Kafka brokers keep track of the high-water mark, which is the largest offset that all In-Sync-Replicas (ISRs) of a particular partition share. Consumers can see messages only until the high-water mark.	
+	8. Lease
+		Problem:
+			In distributed systems, a lot of times clients need specified rights to certain resources. For example, a client might need exclusive rights to update the contents of a file. One way to fulfill this requirement is through distributed locking. A client first gets an exclusive (or write) lock associated with the file and then proceeds with updating the file. One problem with locking is that the lock is granted until the locking client explicitly releases it. If the client fails to release the lock due to any reason, e.g., process crash, deadlock, or a software bug, the resource will be locked indefinitely. This leads to resource unavailability until the system is reset. Is there an alternate solution?
+		Solution:
+			Use time-bound leases to grant clients rights on resources.
+			A lease is like a lock, but it works even when the client goes away. The client asks for a lease for a limited period of time, after which the lease expires. If the client wants to extend the lease, it can renew the lease before it expires.
+		Examples
+			Chubby clients maintain a time-bound session lease with the leader. During this time interval, the leader guarantees to not terminate the session unilaterally
+	9. Heartbeat
+		Problem:
+			In a distributed environment, work/data is distributed among servers. To efficiently route requests in such a setup, servers need to know what other servers are part of the system. Furthermore, servers should know if other servers are alive and working. In a decentralized system, whenever a request arrives at a server, the server should have enough information to decide which server is responsible for entertaining that request. This makes the timely detection of server failure an important task, which also enables the system to take corrective actions and move the data/work to another healthy server and stop the environment from further deterioration.
+		Solution:
+			Each server periodically sends a heartbeat message to a central monitoring server or other servers in the system to show that it is still alive and functioning.
+			If there is a central server, all servers periodically send a heartbeat message to it. If there is no central server, all servers randomly choose a set of servers and send them a heartbeat message every few seconds. This way, if no heartbeat message is received from a server for a while, the system can suspect that the server might have crashed. If there is no heartbeat within a configured timeout period, the system can conclude that the server is not alive anymore and stop sending requests to it and start working on its replacement.
+		Examples
+			GFS: The leader periodically communicates with each ChunkServer in HeartBeat messages to give instructions and collect state.
+			HDFS: The NameNode keeps track of DataNodes through a heartbeat mechanism. Each DataNode sends periodic heartbeat messages (every few seconds) to the NameNode. If a DataNode dies, then the heartbeats to the NameNode are stopped. The NameNode detects that a DataNode has died if the number of missed heartbeat messages reaches a certain threshold. The NameNode then marks the DataNode as dead and will no longer forward any I/O requests to that DataNode.	
+	10. Gossip Protocol
+		 Problem:
+			A heartbeat solution as described above means O(N^2) messages get sent every tick (N being the total number of nodes), which is a ridiculously high amount and will consume a lot of network bandwidth, and thus, not feasible in any sizable cluster
+		Solution: 
+			Each node keeps track of state information about other nodes in the cluster and gossip (i.e., share) this information to one other random node every second. This way, eventually, each node gets to know about the state of every other node in the cluster.
+		Examples
+			Dynamo & Cassandra use gossip protocol which allows each node to keep track of state information about the other nodes in the cluster, like which nodes are reachable, what key ranges they are responsible for, etc.
+	11. Phi Accrual Failure Detection
+			Problem:
+				In distributed systems, accurately detecting failures is a hard problem to solve, as we cannot say with 100% surety if a system is genuinely down or is just very slow in responding due to heavy load, network congestion, etc. Conventional failure detection mechanisms like Heartbeating outputs a boolean value telling us if the system is alive or not; there is no middle ground. Heartbeating uses a fixed timeout, and if there is no heartbeat from a server, the system, after the timeout assumes that the server has crashed. Here, the value of the timeout is critical. If we keep the timeout short, the system will detect failures quickly but with many false positives due to slow machines or faulty network. On the other hand, if we keep the timeout long, the false positives will be reduced, but the system will not perform efficiently for being slow in detecting failures.
+			Solution:
+				Use adaptive failure detection algorithm as described by Phi Accrual Failure Detector. Accrual means accumulation or the act of accumulating over time. This algorithm uses historical heartbeat information to make the threshold adaptive. Instead of telling if the server is alive or not, a generic Accrual Failure Detector outputs the suspicion level about a server. A higher suspicion level means there are higher chances that the server is down.
+				If a node does not respond, its suspicion level is increased and could be declared dead later. As a node’s suspicion level increases, the system can gradually stop sending new requests to it. Phi Accrual Failure Detector makes a distributed system efficient as it takes into account fluctuations in the network environment and other intermittent server issues before declaring a system completely dead.
+			Examples
+				Cassandra uses the Phi Accrual Failure Detector algorithm to determine the state of the nodes in the cluster.
+	12. Split Brain
+		 Problem:
+			In a distributed environment with a central (or leader) server, if the central server dies, the system must quickly find a substitute, otherwise, the system can quickly deteriorate.  One of the problems is that we cannot truly know if the leader has stopped for good or has experienced an intermittent failure.   The cluster has to move on and pick a new leader. If the original leader had an intermittent failure, we now find ourselves with a so-called zombie leader. A zombie leader can be defined as a leader node that had been deemed dead by the system and has since come back online. Another node has taken its place, but the zombie leader might not know that yet. The system now has two active leaders that could be issuing conflicting commands. How can a system detect such a scenario, so that all nodes in the system can ignore requests from the old leader and the old leader itself can detect that it is no longer the leader?
+		Solution:
+			Split-brain is solved through the use of Generation Clock, which is simply a monotonically increasing number to indicate a server’s generation.
+			Every time a new leader is elected, the generation number gets incremented. This means if the old leader had a generation number of ‘1’, the new one will have ‘2’. This generation number is included in every request that is sent from the leader to other nodes. This way, nodes can now easily differentiate the real leader by simply trusting the leader with the highest number. The generation number should be persisted on disk, so that it remains available after a server reboot. One way is to store it with every entry in the Write-ahead Log.
+		Examples#
+			Kafka: To handle Split-brain (where we could have multiple active controller brokers), Kafka uses ‘Epoch number,’ which is simply a monotonically increasing number to indicate a server’s generation.
+			HDFS: ZooKeeper is used to ensure that only one NameNode is active at any time. An epoch number is maintained as part of every transaction ID to reflect the NameNode generation.
+			Cassandra uses generation number to distinguish a node’s state before and after a restart. Each node stores a generation number which is incremented every time a node restarts. This generation number is included in gossip messages exchanged between nodes and is used to distinguish the current state of a node from the state before a restart. The generation number remains the same while the node is alive and is incremented each time the node restarts. The node receiving the gossip message can compare the generation number it knows and the generation number in the gossip message. If the generation number in the gossip message is higher, it knows that the node was restarted.	
+	13. Fencing
+		Problem:
+			In a leader-follower setup, when a leader fails, it is impossible to be sure that the leader has stopped working. For example, a slow network or a network partition can trigger a new leader election, even though the previous leader is still running and thinks it is still the active leader. Now, in this situation, if the system elects a new leader, how do we make sure that the old leader is not running and possibly issuing conflicting commands?
+		Solution:
+			Put a ‘Fence’ around the previous leader to prevent it from doing any damage or causing corruption
+			Fencing is the idea of putting a fence around a previously active leader so that it cannot access cluster resources and hence stop serving any read/write request. 
+			The following two techniques are used:
+				Resource fencing: Under this scheme, the system blocks the previously active leader from accessing resources needed to perform essential tasks. For example, revoking its access to the shared storage directory (typically by using a vendor-specific Network File System (NFS) command), or disabling its network port via a remote management command.
+				Node fencing: Under this scheme, the system stops the previously active leader from accessing all resources. A common way of doing this is to power off or reset the node. This is a very effective method of keeping it from accessing anything at all. This technique is also called STONIT or “Shoot The Other Node In The Head.”
+		Examples
+			HDFS uses fencing to stop the previously active NameNode from accessing cluster resources, thereby stopping it from servicing requests
+	14. Checksum
+		Problem:
+			In a distributed system, while moving data between components, it is possible that the data fetched from a node may arrive corrupted. This corruption can occur because of faults in a storage device, network, software, etc. How can a distributed system ensure data integrity, so that the client receives an error instead of corrupt data?
+		Solution:
+			Calculate a checksum and store it with data.
+				To calculate a checksum, a cryptographic hash function like MD5, SHA-1, SHA-256, or SHA-512 is used. The hash function takes the input data and produces a string (containing letters and numbers) of fixed length; this string is called the checksum.
+			When a system is storing some data, it computes a checksum of the data, and stores the checksum with the data. When a client retrieves data, it verifies that the data it received from the server matches the checksum stored. If not, then the client can opt to retrieve that data from another replica
+		Examples
+			HDFS and Chubby store the checksum of each file with the data.
+	15. Vector Clocks
+		Problem:
+			When a distributed system allows concurrent writes, it can result in multiple versions of an object. Different replicas of an object can end up with different versions of the data.  The problem is clock skew – different clocks tend to run at different rates, so we cannot assume that time t on node a happened before time t + 1 on node b. The most practical techniques that help with synchronizing clocks, like NTP, still do not guarantee that every clock in a distributed system is synchronized at all times. So, without special hardware like GPS units and atomic clocks, just using wall clock timestamps is not enough. So how can we reconcile and capture causality between different versions of the same object?
+		Solution:
+			Use Vector clocks to keep track of value history and reconcile divergent histories at read time.
+			A vector clock is effectively a (node, counter) pair. One vector clock is associated with every version of every object. If the counters on the first object’s clock are less-than-or-equal to all of the nodes in the second clock, then the first is an ancestor of the second and can be forgotten. Otherwise, the two changes are considered to be in conflict and require reconciliation. Such conflicts are resolved at read-time, and if the system is not able to reconcile an object’s state from its vector clocks, it sends it to the client application for reconciliation (since clients have more semantic information on the object and may be able to reconcile it). Resolving conflicts is similar to how Git works. If Git can merge different versions into one, merging is done automatically. If not, the client (i.e., the developer) has to reconcile conflicts manually.
+		Example
+			To reconcile concurrent updates on an object Amazon’s Dynamo uses Vector Clocks.	
+	16. CAP Theorem
+		Problem:
+			In distributed systems, different types of failures can occur, e.g., servers can crash or fail permanently, disks can go bad resulting in data losses, or network connection can be lost, making a part of the system inaccessible. How can a distributed system model itself to get the maximum benefits out of different resources available?
+		Solution:
+			CAP theorem states that it is impossible for a distributed system to simultaneously provide all three of the following desirable properties:
+				Consistency ( C ): 
+					All nodes see the same data at the same time. This means users can read or write from/to any node in the system and will receive the same data. It is equivalent to having a single up-to-date copy of the data.
+				Availability ( A ): 
+					Availability means every request received by a non-failing node in the system must result in a response. Even when severe network failures occur, every request must terminate. In simple terms, availability refers to a system’s ability to remain accessible even if one or more nodes in the system go down.
+				Partition tolerance ( P ): 
+					A partition is a communication break (or a network failure) between any two nodes in the system, i.e., both nodes are up but cannot communicate with each other. A partition-tolerant system continues to operate even if there are partitions in the system. Such a system can sustain any network failure that does not result in the failure of the entire network. Data is sufficiently replicated across combinations of nodes and networks to keep the system up through intermittent outages.
+			A distributed system needs to pick two out of the three properties. The three options are CA, CP, and AP. However, CA is not really a coherent option, as a system that is not partition-tolerant will be forced to give up either Consistency or Availability in the case of a network partition. Therefore, the theorem can really be stated as: In the presence of a network partition, a distributed system must choose either Consistency or Availability.
+		Examples#
+			Dynamo: In CAP theorem terms, Dynamo falls within the category of AP systems and is designed for high availability at the expense of strong consistency. The primary motivation for designing Dynamo as a highly available system was the observation that the availability of a system directly correlates to the number of customers served.
+			BigTable: In terms of the CAP theorem, BigTable is a CP system, i.e., it has strictly consistent reads and writes.
+	17. PACELC Theorem
+		Problem:
+			CAP theorem covers situations where there is partition in a distributed system but is silent about the situation in which there is no partition.  What applies in this situation?
+		Solution:
+			PACELC theorem:
+				If network P partition exists 
+					you have to choose between A availity and C consistency
+				E else
+					you have to choose between L latency and C consistency
+			The first part of the theorem (PAC) is the same as the CAP theorem, and the ELC is the extension. The whole thesis is assuming we maintain high availability by replication. So, when there is a failure, CAP theorem prevails. But if not, we still have to consider the tradeoff between consistency and latency of a replicated system.
+		Examples:
+			Dynamo and Cassandra are PA/EL systems: They choose availability over consistency when a partition occurs; otherwise, they choose lower latency.
+			BigTable and HBase are PC/EC systems: They will always choose consistency, giving up availability and lower latency.
+			MongoDB can be considered PA/EC (default configuration): MongoDB works in a primary/secondaries configuration. In the default configuration, all writes and reads are performed on the primary. As all replication is done asynchronously (from primary to secondaries), when there is a network partition in which primary is lost or becomes isolated on the minority side, there is a chance of losing data that is unreplicated to secondaries, hence there is a loss of consistency during partitions. Therefore it can be concluded that in the case of a network partition, MongoDB chooses availability, but otherwise guarantees consistency. Alternately, when MongoDB is configured to write on majority replicas and read from the primary, it could be categorized as PC/EC.
+	18. Hinted Handoff
+		Problem:
+			Depending upon the consistency level, a distributed system can still serve write requests even when nodes are down. For example, if we have the replication factor of three and the client is writing with a quorum consistency level. This means that if one of the nodes is down, the system can still write on the remaining two nodes to fulfill the consistency level, making the write successful. Now, when the node which was down comes online again, how should we write data to it?
+		Solution:
+			When a node is down or is not responding to a write request, the node which is coordinating the operation, writes a hint in a text file on the local disk. This hint contains the data itself along with information about which node the data belongs to. When the coordinating node discovers that a node for which it holds hints has recovered, it forwards the write requests for each hint to the target.
+		Examples#
+			Cassandra nodes use Hinted Handoff to remember the write operation for failing nodes.
+			Dynamo ensures that the system is “always-writeable” by using Hinted Handoff (and Sloppy Quorum).
+	19. Read Repair
+		Problem:
+			In Distributed Systems, where data is replicated across multiple nodes, some nodes can end up having stale data. Imagine a scenario where a node failed to receive a write or update request because it was down or there was a network partition. How do we ensure that the node gets the latest version of the data when it is healthy again?
+		Solution:
+			Repair stale data during the read operation, since at that point, we can read data from multiple nodes to perform a comparison and find nodes that have stale data. Once the node with old data is known, the read repair operation pushes the newer version of data to nodes with the older version.
+			Based on the quorum, the system reads data from multiple nodes. For example, for Quorum=2, the system reads data from one node and digest of the data from the second node. The digest is a checksum of the data and is used to save network bandwidth. If the digest does not match, it means some replicas do not have the latest version of the data. In this case, the system reads the data from all the replicas to find the latest data. The system returns the latest data to the client and initiates a Read Repair request. The read repair operation pushes the latest version of data to nodes with the older version.
+			When the read consistency level is less than ‘All,’ some systems perform a read repair probabilistically, for example, 10% of the requests. In this case, the system immediately sends a response to the client when the consistency level is met and performs the read repair asynchronously in the background.
+		Examples
+			Cassandra and Dynamo use ‘Read Repair’ to push the latest version of the data to nodes with the older versions.
+	20. Merkle Trees
+		Problem:
+			If a replica falls significantly behind others, it might take a very long time to resolve conflicts. It would be nice to be able to automatically resolve some conflicts in the background. To do this, we need to quickly compare two copies of a range and figure out exactly which parts are different. In a distributed environment, how can we quickly compare two copies of a range of data residing on two different replicas and figure out exactly which parts are different?
+		Solution:
+			A replica can contain a lot of data. Naively splitting up the entire range to calculate checksums for comparison, is not very feasible; there is simply too much data to be transferred. Instead, we can use Merkle trees to compare replicas of a range.
+			A Merkle tree is a binary tree of hashes, where each internal node is the hash of its two children, and each leaf node is a hash of a portion of the original data.
+			Comparing Merkle trees is conceptually simple:
+				Compare the root hashes of both trees.
+				If they are equal, stop.
+				Recurse on the left and right children.
+			Ultimately, this means that replicas know exactly which parts of the range are different, but the amount of data exchanged is minimized. The principal advantage of a Merkle tree is that each branch of the tree can be checked independently without requiring nodes to download the entire tree or the entire data set. Hence, Merkle trees minimize the amount of data that needs to be transferred for synchronization and reduce the number of disk reads.
+			The disadvantage of using Merkle trees is that many key ranges can change when a node joins or leaves, at which point the trees need to be recalculated.
+		Examples
+			For anti-entropy and to resolve conflicts in the background, Dynamo uses Merkle trees.
+
+System Design Examples
+	1. Dynamo Summary (keystore not DynamoDB): 
+		Dynamo is a highly available key-value store developed by Amazon for their internal use.
+		Dynamo shows how business requirements can drive system designs. Amazon has chosen to sacrifice strong consistency for higher availability based on their business requirements.
+		Dynamo was designed with the understanding that system/hardware failures can and do occur.
+		Dynamo is a peer-to-peer distributed system, i.e., it does not have any leader or follower nodes. All nodes are equal and have the same set of roles and responsibilities. This also means that there is no single point of failure.
+		Dynamo uses the Consistent Hashing algorithm to distribute the data among nodes in the cluster automatically.
+		Data is replicated across nodes for fault tolerance and redundancy. Dynamo replicates writes to a sloppy quorum of other nodes in the system instead of a strict majority quorum.
+		For anti-entropy and to resolve conflicts, Dynamo uses Merkle trees.
+		Different storage engines can be plugged into Dynamo’s local storage.
+		Dynamo uses the gossip protocol for inter-node communication.
+		Dynamo makes the system “always writeable” by using hinted handoff.
+		Dynamo’s design philosophy is to ALWAYS allow writes. To support this, Dynamo allows concurrent writes. Writes can be performed by different servers concurrently, resulting in multiple versions of an object. Dynamo attempts to track and reconcile these changes using vector clocks. When Dynamo cannot reconcile an object’s state from its vector clocks, it sends it to the client application for reconciliation (the thought being that the clients have more semantic information on the object and may be able to reconcile it).
+		Dynamo is able to successfully pull together several distributed techniques such as consistent hashing, p2p, gossip, vector clocks, and quorum, and combine them into a complex system.
+		Amazon built Dynamo for internal use only, so no security related issues were considered.
+The following table presents a summary of the list of techniques Dynamo uses and their respective advantages.
+
+Problem								Technique										Advantage
+
+Partitioning 						Consistent Hashing								Incremental Scalability
+
+High availability for writes		Vector clocks with reconciliation during reads	Version size is decoupled from 
+																					update rates.
+
+Handling temporary failures			Sloppy Quorum and Hinted Handoff				Provides high availability and 
+																					durability guarantee when some of the replicas are not available
+
+Recovering from permanent failures	Anti-entropy using Merkle trees					Synchronizes divergent 
+																					replicas on the background
+
+Membership and failure detection	Gossip-based membership protocol and failure 	Preserves symmetry and avoid 
+									detection										centralized monitoring
+									
+2.  Cassandra (wide column NoSQL DB)
+
+		Cassandra is a distributed, decentralized, scalable, and highly available NoSQL database.
+		Cassandra was designed with the understanding that software/hardware failures can and do occur.
+		Cassandra is a peer-to-peer distributed system, i.e., it does not have any leader or follower nodes. All nodes are equal, and there is no single point of failure.
+		Data, in Cassandra, is automatically distributed across nodes.
+		Data is replicated across the nodes for fault tolerance and redundancy.
+		Cassandra uses the Consistent Hashing algorithm to distribute the data among nodes in the cluster. Cassandra cluster has a ring-type architecture, where its nodes are logically distributed like a ring.
+		Cassandra utilizes the data model of Google’s Bigtable, i.e., SSTables and MemTables.
+		Cassandra utilizes distributed features of Amazon’s Dynamo, i.e., consistent hashing, partitioning, and replication.
+		Cassandra offers Tunable consistency for both read and write operations to adjust the tradeoff between availability and consistency of data.
+		Cassandra uses the gossip protocol for inter-node communication.
+		
+	System design patterns#
+		Consistent Hashing: Cassandra uses Consistent Hashing to distribute its data across nodes.
+		Quorum: To ensure data consistency, each Cassandra write operation can be configured to be successful only if the data has been written to at least a quorum of replica nodes.
+		Write-Ahead Log: To ensure durability, whenever a node receives a write request, it immediately writes the data to a commit log which is a write-ahead log.
+		Segmented Log: Cassandra uses the segmented log strategy to split its commit log into multiple smaller files instead of a single large file for easier operations. As we know, when a node receives a write operation, it immediately writes the data to a commit log. As the commit log grows and reaches its threshold in size, a new commit log is created. Hence, over time several commit logs could be present, each of which is called a segment. Commit log segments reduce the number of seeks needed to write to disk. Commit log segments are truncated when Cassandra has flushed corresponding data to SSTables. Commit log segments can be archived, deleted, or recycled once all its data has been flushed to SSTables.
+		Gossip protocol: Cassandra uses gossip protocol that allows each node to keep track of state information about the other nodes in the cluster.
+		Generation number: In Cassandra, each node keeps a generation number which is incremented whenever a node restarts. This generation number is included in gossip messages exchanged between nodes and is used to distinguish the node’s current state from its state before a restart.
+		Phi Accrual Failure Detector: Cassandra uses an adaptive failure detection mechanism as described by the Phi Accrual Failure Detector algorithm. This algorithm, instead of providing a binary output telling if the system is up or down, uses historical heartbeat information to output the suspicion level about a node. A higher suspicion level means there are high chances that the node is down.
+		Bloom filters: In Cassandra, each SStable has a Bloom filter associated with it, which tells if a particular key is present in it or not.
+		Hinted Handoff: Cassandra nodes use Hinted Handoff to remember the write operation for failing nodes.
+		Read Repair: Cassandra uses ‘Read Repair’ to push the latest version of the data to nodes with the older versions.
+		
+3. Kafka Distributed Messaging System
+	Summary:
+		Kafka provides low-latency, high-throughput, fault-tolerant publish and subscribe pipelines and can process huge continuous streams of events.
+		Kafka can function both as a message queue and a publisher-subscriber system.
+		At a high level, Kafka works as a distributed commit log.
+		Kafka server is also called a broker. A Kafka cluster can have one or more brokers.
+		A Kafka topic is a logical aggregation of messages.
+		Kafka solves the scaling problem of a messaging system by splitting a topic into multiple partitions.
+		Every topic partition is replicated for fault tolerance and redundancy.
+		A partition has one leader replica and zero or more follower replicas.
+		Partition leader is responsible for all reads and writes. Each follower’s responsibility is to replicate the leader’s data to serve as a ‘backup’ partition.
+		Message ordering is preserved only on a per-partition basis (not across partitions of a topic).
+		Every partition replica needs to fit on a broker, and a partition cannot be divided over multiple brokers.
+		Every broker can have one or more leaders, covering different partitions and topics.
+		Kafka supports a single queue model with multiple readers by enabling consumer groups.
+		Kafka supports a publish-subscribe model by allowing consumers to subscribe to topics for which they want to receive messages.
+		ZooKeeper functions as a centralized configuration management service.
+	System design patterns#
+		High-water mark#
+		To deal with non-repeatable reads and ensure data consistency, brokers keep track of the high-water mark, which is the largest offset that all ISRs of a particular partition share. Consumers can see messages only until the high watermark.
+
+		Leader and follower#
+		Each Kafka partition has a designated leader responsible for all reads and writes for that partition. Each follower’s responsibility is to replicate the leader’s data to serve as a ‘backup’ partition.
+
+		Split-brain#
+		To handle split-brain (where we have multiple active controller brokers), Kafka uses ‘epoch number,’ which is simply a monotonically increasing number to indicate a server’s generation. This means if the old Controller had an epoch number of ‘1’, the new one would have ‘2’. This epoch is included in every request that is sent from the Controller to other brokers. This way, brokers can easily differentiate the real Controller by simply trusting the Controller with the highest number. This epoch number is stored in ZooKeeper.
+
+		Segmented log#
+		Kafka uses log segmentation to implement storage for its partitions. As Kafka regularly needs to find messages on disk for purging, a single long file could be a performance bottleneck and error-prone. For easier management and better performance, the partition is split into segments.
+
+4. Chubby - Distributed Locking Service
+	Summary:
+		Chubby is a distributed lock service used inside Google systems.
+		It provides coarse-grained locking (for hours or days) and is not recommended for fine-grained locking (for seconds) scenarios. Due to this nature, it is more suited for high-read and rare write scenarios.
+		Chubby’s primary use cases include naming service, leader election, small files storage, and distributed locks.
+		A Chubby Cell basically refers to a Chubby cluster. A chubby cell has more than one server (typically 3-5 at least) known as replicas.
+		Using Paxos, one server is chosen as the master at any point and handles all the requests. If the master fails, another server from replicas becomes the master.
+		Each replica maintains a small database to store files/directories/locks. Master directly writes to its own local database, which gets synced asynchronously to all the replicas for fault tolerance.
+		Client applications use a Chubby library to communicate with the replicas in the chubby cell using RPC.
+		Like Unix, Chubby file system interface is basically a tree of files & directories (collectively called nodes), where each directory contains a list of child files and directories.
+		Locks: Each node can act as an advisory reader-writer lock in one of the following two ways:
+		Exclusive: One client may hold the lock in exclusive (write) mode.
+		Shared: Any number of clients may hold the lock in shared (reader) mode.
+		Ephemeral nodes are used as temporary files, and act as an indicator to others that a client is alive. Ephemeral nodes are also deleted if no client has them open. Ephemeral directories are also deleted if they are empty.
+		Metadata: Metadata for each node includes Access Control Lists (ACLs), monotonically increasing 64-bit numbers, and checksum.
+		Events: Chubby supports a simple event mechanism to let its clients subscribe for a variety of events for files such as a lock being acquired or a file being edited.
+		Caching: To reduce read traffic, Chubby clients cache file contents, node metadata, and information on open handles in a consistent, write-through cache in the client’s memory.
+		Sessions: Clients maintain sessions by sending KeepAlive RPCs to Chubby. This constitutes about 93% of the example Chubby cluster’s requests.
+		Backup: Every few hours, the master of each Chubby cell writes a snapshot of its database to a GFS file server in a different building.
+		Mirroring: Chubby allows a collection of files to be mirrored from one cell to another. Mirroring is used most commonly to copy configuration files to various computing clusters distributed around the world.
+	System design patterns#
+		Write-Ahead Log: For fault tolerance and to handle a master crash, all database transactions are stored in a transaction log.
+		Quorum: To ensure strong consistency, Chubby master sends all write requests to the replicas. After receiving acknowledgments from the majority of replicas in the cell, the master sends an acknowledgment to the client who initiated the write.
+		Generation clock: To disregard requests from the previous master, every newly-elected master in Chubby uses ‘Epoch number’, which is simply a monotonically increasing number to indicate a server’s generation. This means if the old master had an epoch number of ‘1’, the new one would have ‘2’. This ensures that the new master will not respond to any old request which was sent to the previous master.
+		Lease: Chubby clients maintain a time-bound session lease with the master. During this time interval, the master guarantees to not terminate the session unilaterally.
+
+5. 	GFS Distributed File Storage System
+	Summary#
+		GFS is a scalable distributed file storage system for large data-intensive applications.
+		GFS uses commodity hardware to reduce infrastructure costs.
+		GFS was designed with the understanding that system/hardware failures can and do occur.
+		Reading workload consists of large streaming reads and small random reads. Writing workloads consists of many large, sequential writes that append data to files.
+		GFS provides APIs for usual file operations like create, delete, open, close, read, and write. Additionally, GFS supports snapshot and record append operations. Snapshot creates a copy of the file or directory tree. Record append allows multiple clients to append data to the same file concurrently while guaranteeing atomicity.
+		A GFS cluster consists of a single master and multiple ChunkServers and is accessed by multiple clients.
+		Chunk: Files are broken into fixed-size chunks where each chunk is 64 megabytes in size. Each chunk is identified by an immutable and globally unique 64-bit chunk handle assigned by the master at the time of chunk creation.
+		ChunkServers store chunks on the local disk as Linux files.
+		For reliability, each chunk is replicated on multiple ChunkServers.
+		Master server is the coordinator of a GFS cluster and is responsible for keeping track of all the filesystem metadata. This includes namespace, authorization, mapping of files to chunks, and the current location of chunks.
+		Master keeps all metadata in memory for faster operations. For fault tolerance and to handle a master crash, all metadata changes are written to the disk onto an operation log. This operation log is also replicated onto remote machines.
+		The master does not keep a persistent record of which ChunkServers have a replica of a given chunk. Instead, the master asks each ChunkServer about what chunks it holds at master startup or whenever a ChunkServer joins the cluster.
+		Checkpointing: The master’s state is periodically serialized to disk and then replicated so that on recovery, a master may load the checkpoint into memory, replay any subsequent operations from the operation log, and be available again very quickly.
+		HeartBeat: The master communicates with each ChunkServer through Heartbeat messages to pass instructions to it and collects its state.
+		Client: GFS client code which is linked into each application, implements filesystem APIs, and communicates with the cluster. Clients interact with the master for metadata, but all data transfers happen directly between the client and ChunkServers.
+		Data Integrity: Each ChunkServer uses checksumming to detect the corruption of stored data.
+		Garbage Collection: After a file is deleted, GFS does not immediately reclaim the available physical storage. It does so only lazily during regular garbage collection at both the file and chunk levels.
+		Consistency: Master guarantees data consistency by ensuring the order of mutations on all replicas and using chunk version numbers. If a replica has an incorrect version, it is garbage collected.
+		GFS guarantees at-least-once writes for writers. This means that records could be written more than once as well (although rarely). It is the responsibility of the readers to deal with these duplicate chunks. This is achieved by having checksums and serial numbers in the chunks, which help readers to filter and discard duplicate data.
+		Cache: Neither the client nor the ChunkServer caches file data. Client caches offer little benefit because most applications stream through huge files or have working sets too large to be cached. However, clients do cache metadata.
+	System design patterns#
+		Write-Ahead Log: For fault-tolerance and in the event of a master crash, all metadata changes are written to the disk onto an operation log which is a write-ahead log.
+
+		HeartBeat: The GFS master periodically communicates with each ChunkServer in HeartBeat messages to give it instructions and collect its state.
+
+		Checksum: Each ChunkServer uses checksumming to detect the corruption of stored data.
