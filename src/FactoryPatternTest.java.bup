@@ -1,0 +1,77 @@
+/*
+In class-based programming, the factory method pattern is a creational pattern that uses factory methods to deal with the problem of creating objects without having to specify the exact class of the object that will be created. This is done by creating objects by calling a factory method—either specified in an interface and implemented by child classes, or implemented in a base class and optionally overridden by derived classes—rather than by calling a constructor.
+What is:
+1. A method returns one of sever possible classes that share a common super class
+2. The class is chosen at run time.
+Use when:
+1. you don't know ahead of time what class object you need.  All potential classes are subclasses that inherit from the same subclass hierarchy
+2. you centralize class selection code
+3. you don't want the user to have to know every subclass
+4. you encapsulate object creation meaning you limit maintenance to the class that instantiates - the factory
+
+*/
+
+public class FactoryPatternTest{
+	
+	public static void main(String[] args){
+		ProductFactory pf = new ProductFactory();
+		Product p = pf.makeProduct("Phone");
+		System.out.println(p.getName()+" costs R"+p.getPrice());
+		p = pf.makeProduct("Laptop");
+		System.out.println(p.getName()+" costs R"+p.getPrice());
+		p = pf.makeProduct("Tablet");
+		System.out.println(p.getName()+" costs R"+p.getPrice());
+	}
+}
+
+class ProductFactory{
+	public Product makeProduct(String req){
+		if(req.equals("Phone")){
+			Product p = new Phone();
+			p.setPrice(100.20);
+			return p;
+		}else if(req.equals("Laptop")){
+			Product p = new Laptop();
+			p.setPrice(160.85);
+			return p;
+		}else if(req.equals("Tablet")){
+			Product p = new Tablet();
+			p.setPrice(120.45);
+			return p;
+		}
+		return null;
+	}
+}
+
+abstract class Product{
+	String name;
+	double price;
+	
+	public void setPrice(double price){
+		this.price = price;
+	}
+	
+	public abstract String getName();
+	
+	public double getPrice(){
+		return price;
+	}
+}
+
+class Phone extends Product{
+	public String getName(){
+		return this.getClass().getName();
+	}
+}
+	
+class Laptop extends Product{
+	public String getName(){
+		return this.getClass().getName();
+	}
+}
+
+class Tablet extends Product{
+	public String getName(){
+		return this.getClass().getName();
+	}
+}
