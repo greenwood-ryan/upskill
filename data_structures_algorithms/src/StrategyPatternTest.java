@@ -7,6 +7,8 @@ When to use it?:
 	4. To hide complicated / secret code from the user (inject the functionality)
 Negative:
 	1. Increased number of classes and objects.
+
+
 */
 
 public class StrategyPatternTest{
