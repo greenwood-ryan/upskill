@@ -8,7 +8,7 @@ When to use it?:
 Negative:
 	1. Increased number of classes and objects.
 
-
+--
 */
 
 public class StrategyPatternTest{
